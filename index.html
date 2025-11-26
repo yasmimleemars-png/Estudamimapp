@@ -38,7 +38,7 @@
 
             <div class="w-full space-y-4 max-w-xs">
                 <input id="email" type="email" placeholder="E-mail" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:border-rose-300">
-                <input id="password" type="password" placeholder="Senha" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:border-rose-300">
+                <input id="password" type="password" placeholder="Senha (mínimo 6 dígitos)" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:border-rose-300">
                 
                 <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg hover:bg-stone-900 transition flex justify-center items-center gap-2">
                     <span id="btn-text">Entrar / Criar Conta</span>
@@ -130,6 +130,7 @@
         //  COLE SUA CONFIGURAÇÃO DO FIREBASE AQUI
         // ==========================================
         const firebaseConfig = {
+           const firebaseConfig = {
           apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
           authDomain: "estudamim-e5b35.firebaseapp.com",
           projectId: "estudamim-e5b35",
@@ -189,9 +190,13 @@
             loader.classList.remove('hidden');
 
             try {
+                // Tenta fazer login normal
                 await auth.signInWithEmailAndPassword(email, pass);
             } catch (error) {
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                // CORREÇÃO: Aceita os novos códigos de erro do Google e tenta criar a conta
+                const errorCodes = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
+                
+                if (errorCodes.includes(error.code)) {
                     try {
                         await auth.createUserWithEmailAndPassword(email, pass);
                         // Cria uma matéria de exemplo
@@ -199,7 +204,13 @@
                             name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()
                         });
                     } catch (createError) {
-                        errorMsg.innerText = "Erro ao criar: " + createError.message;
+                         if(createError.code === 'auth/email-already-in-use') {
+                             errorMsg.innerText = "Senha incorreta para este e-mail.";
+                         } else if (createError.code === 'auth/weak-password') {
+                             errorMsg.innerText = "A senha precisa de 6 caracteres.";
+                         } else {
+                             errorMsg.innerText = "Erro ao criar: " + createError.message;
+                         }
                     }
                 } else {
                     errorMsg.innerText = "Erro: " + error.message;
@@ -371,4 +382,4 @@
 
     </script>
 </body>
-    </html>
+                    </html>
