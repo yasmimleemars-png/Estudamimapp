@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudaMim</title>
+    
+    <!-- 1. Carregando o Tailwind CSS (Design) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Carregando Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 3. Carregando React e Recharts (Motor do App) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+    
+    <!-- 4. Babel (Para traduzir o código no navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Lato', sans-serif; }
+        body { background-color: #FDFBF7; }
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Acessando as bibliotecas globais
+        const { useState, useMemo, useEffect } = React;
+        const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } = Recharts;
+
+        // Cores e Dados
+        const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
+
+        const EstudaMim = () => {
+            // Estados
+            const [view, setView] = useState('dashboard');
+            const [timeRange, setTimeRange] = useState('day');
+            const [subjects, setSubjects] = useState([
+                { id: 1, name: 'Matemática', color: '#3B7CA8' },
+                { id: 2, name: 'Português', color: '#E88D93' },
+                { id: 3, name: 'História', color: '#D4A373' },
+            ]);
+            const [sessions, setSessions] = useState([
+                { id: 1, subjectId: 1, date: new Date().toISOString(), duration: 60, notes: 'Álgebra linear' },
+                { id: 2, subjectId: 2, date: new Date().toISOString(), duration: 45, notes: 'Redação' },
+                { id: 3, subjectId: 1, date: new Date(Date.now() - 86400000).toISOString(), duration: 120, notes: 'Geometria' },
+            ]);
+
+            // Form States
+            const [newSubjectName, setNewSubjectName] = useState('');
+            const [newSubjectColor, setNewSubjectColor] = useState(COLORS[0]);
+            const [logSubjectId, setLogSubjectId] = useState('');
+            const [logDate, setLogDate] = useState(new Date().toISOString().substr(0, 10));
+            const [logDuration, setLogDuration] = useState('');
+            const [logNotes, setLogNotes] = useState('');
+            const [editingSessionId, setEditingSessionId] = useState(null);
+
+            // Lógica de Filtro
+            const filteredSessions = useMemo(() => {
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                
+                return sessions.filter(session => {
+                    const sessionDate = new Date(session.date).getTime();
+                    if (timeRange === 'day') return sessionDate >= todayStart && sessionDate < todayStart + 86400000;
+                    if (timeRange === 'week') return sessionDate >= todayStart - (now.getDay() * 86400000);
+                    if (timeRange === 'month') return new Date(session.date).getMonth() === now.getMonth() && new Date(session.date).getFullYear() === now.getFullYear();
+                    if (timeRange === 'year') return new Date(session.date).getFullYear() === now.getFullYear();
+                    return true;
+                });
+            }, [sessions, timeRange]);
+
+            const pieData = useMemo(() => {
+                const data = {};
+                filteredSessions.forEach(session => {
+                    const subject = subjects.find(s => s.id === parseInt(session.subjectId));
+                    if (subject) {
+                        if (!data[subject.name]) data[subject.name] = { name: subject.name, value: 0, color: subject.color };
+                        data[subject.name].value += parseInt(session.duration);
+                    }
+                });
+                return Object.values(data);
+            }, [filteredSessions, subjects]);
+
+            const totalHours = useMemo(() => {
+                const totalMinutes = pieData.reduce((acc, curr) => acc + curr.value, 0);
+                return (totalMinutes / 60).toFixed(1);
+            }, [pieData]);
+
+            // Ações
+            const handleAddSubject = () => {
+                if (!newSubjectName) return;
+                const newId = subjects.length > 0 ? Math.max(...subjects.map(s => s.id)) + 1 : 1;
+                setSubjects([...subjects, { id: newId, name: newSubjectName, color: newSubjectColor }]);
+                setNewSubjectName('');
+            };
+
+            const handleDeleteSubject = (id) => {
+                setSubjects(subjects.filter(s => s.id !== id));
+            };
+
+            const handleSaveSession = () => {
+                if (!logSubjectId || !logDuration) return;
+                const sessionData = {
+                    subjectId: parseInt(logSubjectId),
+                    date: new Date(logDate).toISOString(),
+                    duration: parseInt(logDuration),
+                    notes: logNotes
+                };
+
+                if (editingSessionId) {
+                    setSessions(sessions.map(s => s.id === editingSessionId ? { ...sessionData, id: editingSessionId } : s));
+                    setEditingSessionId(null);
+                } else {
+                    const newId = sessions.length > 0 ? Math.max(...sessions.map(s => s.id)) + 1 : 1;
+                    setSessions([...sessions, { ...sessionData, id: newId }]);
+                }
+                setLogDuration(''); setLogNotes(''); setView('dashboard');
+            };
+
+            const handleEditSession = (session) => {
+                setEditingSessionId(session.id);
+                setLogSubjectId(session.subjectId);
+                setLogDate(session.date.substr(0, 10));
+                setLogDuration(session.duration);
+                setLogNotes(session.notes);
+                setView('log');
+            };
+
+            const handleDeleteSession = (id) => setSessions(sessions.filter(s => s.id !== id));
+
+            // Componentes UI
+            const NavButton = ({ icon, label, targetView }) => (
+                <button 
+                    onClick={() => {
+                        setView(targetView);
+                        if (targetView === 'log') { setEditingSessionId(null); setLogDuration(''); setLogNotes(''); }
+                    }}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${view === targetView ? 'text-rose-500 bg-rose-50 font-bold' : 'text-stone-400'}`}
+                >
+                    <i className={`fa-solid ${icon} text-xl mb-1`}></i>
+                    <span className="text-xs">{label}</span>
+                </button>
+            );
+
+            const TimeFilterButton = ({ label, value }) => (
+                <button
+                    onClick={() => setTimeRange(value)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${timeRange === value ? 'bg-sky-600 text-white shadow-md' : 'bg-white text-stone-500 border border-stone-200'}`}
+                >
+                    {label}
+                </button>
+            );
+
+            // Telas
+            const Dashboard = () => (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-stone-800 font-bold text-lg">Resumo</h2>
+                            <div className="flex space-x-1">
+                                {['day', 'week', 'month', 'year'].map(t => 
+                                    <TimeFilterButton key={t} label={t === 'day' ? 'Hoje' : t === 'week' ? 'Sem' : t === 'month' ? 'Mês' : 'Ano'} value={t} />
+                                )}
+                            </div>
+                        </div>
+                        <div className="h-64 relative">
+                            {pieData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                            {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                                        </Pie>
+                                        <Tooltip formatter={(value) => [`${value} min`, 'Tempo']} />
+                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-stone-400 flex-col">
+                                    <i className="fa-regular fa-clock text-4xl mb-2 opacity-20"></i>
+                                    <p>Sem dados</p>
+                                </div>
+                            )}
+                            {pieData.length > 0 && (
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60%] text-center pointer-events-none">
+                                    <span className="block text-3xl font-bold text-stone-800">{totalHours}</span>
+                                    <span className="text-xs text-stone-500 uppercase tracking-wider">Horas</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-rose-100 p-5 rounded-3xl flex flex-col justify-between text-rose-800">
+                            <span className="text-sm font-medium opacity-80">Maior Foco</span>
+                            <span className="text-xl font-bold mt-1">{pieData.length > 0 ? pieData.reduce((prev, current) => (prev.value > current.value) ? prev : current).name : '-'}</span>
+                        </div>
+                        <div className="bg-sky-100 p-5 rounded-3xl flex flex-col justify-between text-sky-800">
+                            <span className="text-sm font-medium opacity-80">Sessões</span>
+                            <span className="text-xl font-bold mt-1">{filteredSessions.length}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Render Principal
+            return (
+                <div className="min-h-screen font-sans text-stone-800 flex justify-center bg-stone-100">
+                    <div className="w-full max-w-md bg-[#FDFBF7] min-h-screen shadow-2xl relative flex flex-col">
+                        <header className="px-6 pt-8 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 sticky top-0">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-4xl font-serif font-black text-stone-800 tracking-tight">Estuda<span className="text-rose-400 italic">Mim</span></h1>
+                                    <p className="text-stone-400 text-sm mt-1">Acompanhe seu progresso</p>
+                                </div>
+                                <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center border-2 border-white shadow-md text-2xl">🐶</div>
+                            </div>
+                        </header>
+
+                        <main className="flex-1 px-6 py-6 overflow-y-auto pb-28 custom-scrollbar">
+                            {view === 'dashboard' && <Dashboard />}
+                            
+                            {view === 'subjects' && (
+                                <div className="space-y-6">
+                                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+                                        <h2 className="font-bold text-lg mb-4">Nova Matéria</h2>
+                                        <input type="text" placeholder="Nome..." className="w-full p-3 bg-stone-50 rounded-xl mb-3" value={newSubjectName} onChange={(e) => setNewSubjectName(e.target.value)} />
+                                        <div className="flex gap-2 overflow-x-auto py-2">
+                                            {COLORS.map(c => <button key={c} onClick={() => setNewSubjectColor(c)} className={`w-8 h-8 rounded-full border-2 ${newSubjectColor === c ? 'border-stone-800 scale-110' : 'border-transparent'}`} style={{backgroundColor: c}} />)}
+                                        </div>
+                                        <button onClick={handleAddSubject} disabled={!newSubjectName} className="w-full py-3 bg-stone-800 text-white rounded-xl font-bold mt-2 disabled:opacity-50">Adicionar</button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {subjects.map(s => (
+                                            <div key={s.id} className="flex justify-between p-4 bg-white rounded-2xl shadow-sm border border-stone-100">
+                                                <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full" style={{backgroundColor: s.color}}></div><span className="font-bold">{s.name}</span></div>
+                                                <button onClick={() => handleDeleteSubject(s.id)} className="text-stone-300 hover:text-rose-500"><i className="fa-solid fa-trash"></i></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'log' && (
+                                <div className="h-full flex flex-col">
+                                    <h2 className="text-2xl font-serif font-bold text-center mb-6">{editingSessionId ? 'Editar' : 'Registrar'}</h2>
+                                    <div className="bg-white flex-1 rounded-t-3xl p-6 shadow-lg space-y-5">
+                                        <div><label className="text-sm font-bold text-stone-500">Data</label><input type="date" value={logDate} onChange={(e) => setLogDate(e.target.value)} className="w-full p-4 bg-stone-50 rounded-2xl font-medium" /></div>
+                                        <div>
+                                            <label className="text-sm font-bold text-stone-500">Matéria</label>
+                                            <div className="grid grid-cols-2 gap-3 mt-1">
+                                                {subjects.map(s => <button key={s.id} onClick={() => setLogSubjectId(s.id)} className={`p-3 rounded-xl border-2 text-left ${parseInt(logSubjectId) === s.id ? 'border-sky-500 bg-sky-50' : 'border-transparent bg-stone-50'}`}><span className="font-bold text-sm" style={{color: s.color}}>● {s.name}</span></button>)}
+                                            </div>
+                                        </div>
+                                        <div><label className="text-sm font-bold text-stone-500">Minutos</label><input type="number" value={logDuration} onChange={(e) => setLogDuration(e.target.value)} className="w-full p-4 bg-stone-50 rounded-2xl font-bold text-xl" placeholder="0" /></div>
+                                        <button onClick={handleSaveSession} disabled={!logSubjectId || !logDuration} className="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-lg mt-4 disabled:opacity-50">Salvar</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'history' && (
+                                <div className="space-y-3 pb-20">
+                                    <h2 className="font-bold text-lg px-2">Histórico</h2>
+                                    {sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).map(s => {
+                                        const sub = subjects.find(sb => sb.id === s.subjectId);
+                                        return (
+                                            <div key={s.id} className="bg-white p-4 rounded-2xl shadow-sm border border-stone-50">
+                                                <div className="flex justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold" style={{color: sub?.color}}>{sub?.name}</h4>
+                                                        <p className="text-xs text-stone-400">{new Date(s.date).toLocaleDateString()}</p>
+                                                    </div>
+                                                    <span className="font-bold text-stone-700">{s.duration} min</span>
+                                                </div>
+                                                <div className="flex justify-end gap-3 mt-2 pt-2 border-t border-stone-100">
+                                                    <button onClick={() => handleEditSession(s)} className="text-xs font-bold text-sky-600"><i className="fa-solid fa-pen"></i> Editar</button>
+                                                    <button onClick={() => handleDeleteSession(s.id)} className="text-xs font-bold text-rose-500"><i className="fa-solid fa-trash"></i> Excluir</button>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </main>
+
+                        <nav className="absolute bottom-6 left-6 right-6 bg-white rounded-2xl shadow-lg p-2 flex justify-around items-center border border-stone-100 z-30">
+                            <NavButton icon="fa-chart-pie" label="Resumo" targetView="dashboard" />
+                            <NavButton icon="fa-book" label="Matérias" targetView="subjects" />
+                            <button onClick={() => { setView('log'); setEditingSessionId(null); setLogDuration(''); setLogNotes(''); }} className="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-8 shadow-lg border-4 border-[#FDFBF7]"><i className="fa-solid fa-plus text-xl"></i></button>
+                            <NavButton icon="fa-calendar-days" label="Histórico" targetView="history" />
+                            <div className="w-10 opacity-0"></div>
+                        </nav>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EstudaMim />);
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudaMim</title>
+    
+    <!-- 1. Carregando o Tailwind CSS (Design) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Carregando Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 3. Carregando React e Recharts (Motor do App) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+    
+    <!-- 4. Babel (Para traduzir o código no navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Lato', sans-serif; }
+        body { background-color: #FDFBF7; }
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Acessando as bibliotecas globais
+        const { useState, useMemo, useEffect } = React;
+        const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } = Recharts;
+
+        // Cores e Dados
+        const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
+
+        const EstudaMim = () => {
+            // Estados
+            const [view, setView] = useState('dashboard');
+            const [timeRange, setTimeRange] = useState('day');
+            const [subjects, setSubjects] = useState([
+                { id: 1, name: 'Matemática', color: '#3B7CA8' },
+                { id: 2, name: 'Português', color: '#E88D93' },
+                { id: 3, name: 'História', color: '#D4A373' },
+            ]);
+            const [sessions, setSessions] = useState([
+                { id: 1, subjectId: 1, date: new Date().toISOString(), duration: 60, notes: 'Álgebra linear' },
+                { id: 2, subjectId: 2, date: new Date().toISOString(), duration: 45, notes: 'Redação' },
+                { id: 3, subjectId: 1, date: new Date(Date.now() - 86400000).toISOString(), duration: 120, notes: 'Geometria' },
+            ]);
+
+            // Form States
+            const [newSubjectName, setNewSubjectName] = useState('');
+            const [newSubjectColor, setNewSubjectColor] = useState(COLORS[0]);
+            const [logSubjectId, setLogSubjectId] = useState('');
+            const [logDate, setLogDate] = useState(new Date().toISOString().substr(0, 10));
+            const [logDuration, setLogDuration] = useState('');
+            const [logNotes, setLogNotes] = useState('');
+            const [editingSessionId, setEditingSessionId] = useState(null);
+
+            // Lógica de Filtro
+            const filteredSessions = useMemo(() => {
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                
+                return sessions.filter(session => {
+                    const sessionDate = new Date(session.date).getTime();
+                    if (timeRange === 'day') return sessionDate >= todayStart && sessionDate < todayStart + 86400000;
+                    if (timeRange === 'week') return sessionDate >= todayStart - (now.getDay() * 86400000);
+                    if (timeRange === 'month') return new Date(session.date).getMonth() === now.getMonth() && new Date(session.date).getFullYear() === now.getFullYear();
+                    if (timeRange === 'year') return new Date(session.date).getFullYear() === now.getFullYear();
+                    return true;
+                });
+            }, [sessions, timeRange]);
+
+            const pieData = useMemo(() => {
+                const data = {};
+                filteredSessions.forEach(session => {
+                    const subject = subjects.find(s => s.id === parseInt(session.subjectId));
+                    if (subject) {
+                        if (!data[subject.name]) data[subject.name] = { name: subject.name, value: 0, color: subject.color };
+                        data[subject.name].value += parseInt(session.duration);
+                    }
+                });
+                return Object.values(data);
+            }, [filteredSessions, subjects]);
+
+            const totalHours = useMemo(() => {
+                const totalMinutes = pieData.reduce((acc, curr) => acc + curr.value, 0);
+                return (totalMinutes / 60).toFixed(1);
+            }, [pieData]);
+
+            // Ações
+            const handleAddSubject = () => {
+                if (!newSubjectName) return;
+                const newId = subjects.length > 0 ? Math.max(...subjects.map(s => s.id)) + 1 : 1;
+                setSubjects([...subjects, { id: newId, name: newSubjectName, color: newSubjectColor }]);
+                setNewSubjectName('');
+            };
+
+            const handleDeleteSubject = (id) => {
+                setSubjects(subjects.filter(s => s.id !== id));
+            };
+
+            const handleSaveSession = () => {
+                if (!logSubjectId || !logDuration) return;
+                const sessionData = {
+                    subjectId: parseInt(logSubjectId),
+                    date: new Date(logDate).toISOString(),
+                    duration: parseInt(logDuration),
+                    notes: logNotes
+                };
+
+                if (editingSessionId) {
+                    setSessions(sessions.map(s => s.id === editingSessionId ? { ...sessionData, id: editingSessionId } : s));
+                    setEditingSessionId(null);
+                } else {
+                    const newId = sessions.length > 0 ? Math.max(...sessions.map(s => s.id)) + 1 : 1;
+                    setSessions([...sessions, { ...sessionData, id: newId }]);
+                }
+                setLogDuration(''); setLogNotes(''); setView('dashboard');
+            };
+
+            const handleEditSession = (session) => {
+                setEditingSessionId(session.id);
+                setLogSubjectId(session.subjectId);
+                setLogDate(session.date.substr(0, 10));
+                setLogDuration(session.duration);
+                setLogNotes(session.notes);
+                setView('log');
+            };
+
+            const handleDeleteSession = (id) => setSessions(sessions.filter(s => s.id !== id));
+
+            // Componentes UI
+            const NavButton = ({ icon, label, targetView }) => (
+                <button 
+                    onClick={() => {
+                        setView(targetView);
+                        if (targetView === 'log') { setEditingSessionId(null); setLogDuration(''); setLogNotes(''); }
+                    }}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${view === targetView ? 'text-rose-500 bg-rose-50 font-bold' : 'text-stone-400'}`}
+                >
+                    <i className={`fa-solid ${icon} text-xl mb-1`}></i>
+                    <span className="text-xs">{label}</span>
+                </button>
+            );
+
+            const TimeFilterButton = ({ label, value }) => (
+                <button
+                    onClick={() => setTimeRange(value)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${timeRange === value ? 'bg-sky-600 text-white shadow-md' : 'bg-white text-stone-500 border border-stone-200'}`}
+                >
+                    {label}
+                </button>
+            );
+
+            // Telas
+            const Dashboard = () => (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-stone-800 font-bold text-lg">Resumo</h2>
+                            <div className="flex space-x-1">
+                                {['day', 'week', 'month', 'year'].map(t => 
+                                    <TimeFilterButton key={t} label={t === 'day' ? 'Hoje' : t === 'week' ? 'Sem' : t === 'month' ? 'Mês' : 'Ano'} value={t} />
+                                )}
+                            </div>
+                        </div>
+                        <div className="h-64 relative">
+                            {pieData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                            {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                                        </Pie>
+                                        <Tooltip formatter={(value) => [`${value} min`, 'Tempo']} />
+                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-stone-400 flex-col">
+                                    <i className="fa-regular fa-clock text-4xl mb-2 opacity-20"></i>
+                                    <p>Sem dados</p>
+                                </div>
+                            )}
+                            {pieData.length > 0 && (
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60%] text-center pointer-events-none">
+                                    <span className="block text-3xl font-bold text-stone-800">{totalHours}</span>
+                                    <span className="text-xs text-stone-500 uppercase tracking-wider">Horas</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-rose-100 p-5 rounded-3xl flex flex-col justify-between text-rose-800">
+                            <span className="text-sm font-medium opacity-80">Maior Foco</span>
+                            <span className="text-xl font-bold mt-1">{pieData.length > 0 ? pieData.reduce((prev, current) => (prev.value > current.value) ? prev : current).name : '-'}</span>
+                        </div>
+                        <div className="bg-sky-100 p-5 rounded-3xl flex flex-col justify-between text-sky-800">
+                            <span className="text-sm font-medium opacity-80">Sessões</span>
+                            <span className="text-xl font-bold mt-1">{filteredSessions.length}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Render Principal
+            return (
+                <div className="min-h-screen font-sans text-stone-800 flex justify-center bg-stone-100">
+                    <div className="w-full max-w-md bg-[#FDFBF7] min-h-screen shadow-2xl relative flex flex-col">
+                        <header className="px-6 pt-8 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 sticky top-0">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-4xl font-serif font-black text-stone-800 tracking-tight">Estuda<span className="text-rose-400 italic">Mim</span></h1>
+                                    <p className="text-stone-400 text-sm mt-1">Acompanhe seu progresso</p>
+                                </div>
+                                <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center border-2 border-white shadow-md text-2xl">🐶</div>
+                            </div>
+                        </header>
+
+                        <main className="flex-1 px-6 py-6 overflow-y-auto pb-28 custom-scrollbar">
+                            {view === 'dashboard' && <Dashboard />}
+                            
+                            {view === 'subjects' && (
+                                <div className="space-y-6">
+                                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+                                        <h2 className="font-bold text-lg mb-4">Nova Matéria</h2>
+                                        <input type="text" placeholder="Nome..." className="w-full p-3 bg-stone-50 rounded-xl mb-3" value={newSubjectName} onChange={(e) => setNewSubjectName(e.target.value)} />
+                                        <div className="flex gap-2 overflow-x-auto py-2">
+                                            {COLORS.map(c => <button key={c} onClick={() => setNewSubjectColor(c)} className={`w-8 h-8 rounded-full border-2 ${newSubjectColor === c ? 'border-stone-800 scale-110' : 'border-transparent'}`} style={{backgroundColor: c}} />)}
+                                        </div>
+                                        <button onClick={handleAddSubject} disabled={!newSubjectName} className="w-full py-3 bg-stone-800 text-white rounded-xl font-bold mt-2 disabled:opacity-50">Adicionar</button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {subjects.map(s => (
+                                            <div key={s.id} className="flex justify-between p-4 bg-white rounded-2xl shadow-sm border border-stone-100">
+                                                <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full" style={{backgroundColor: s.color}}></div><span className="font-bold">{s.name}</span></div>
+                                                <button onClick={() => handleDeleteSubject(s.id)} className="text-stone-300 hover:text-rose-500"><i className="fa-solid fa-trash"></i></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'log' && (
+                                <div className="h-full flex flex-col">
+                                    <h2 className="text-2xl font-serif font-bold text-center mb-6">{editingSessionId ? 'Editar' : 'Registrar'}</h2>
+                                    <div className="bg-white flex-1 rounded-t-3xl p-6 shadow-lg space-y-5">
+                                        <div><label className="text-sm font-bold text-stone-500">Data</label><input type="date" value={logDate} onChange={(e) => setLogDate(e.target.value)} className="w-full p-4 bg-stone-50 rounded-2xl font-medium" /></div>
+                                        <div>
+                                            <label className="text-sm font-bold text-stone-500">Matéria</label>
+                                            <div className="grid grid-cols-2 gap-3 mt-1">
+                                                {subjects.map(s => <button key={s.id} onClick={() => setLogSubjectId(s.id)} className={`p-3 rounded-xl border-2 text-left ${parseInt(logSubjectId) === s.id ? 'border-sky-500 bg-sky-50' : 'border-transparent bg-stone-50'}`}><span className="font-bold text-sm" style={{color: s.color}}>● {s.name}</span></button>)}
+                                            </div>
+                                        </div>
+                                        <div><label className="text-sm font-bold text-stone-500">Minutos</label><input type="number" value={logDuration} onChange={(e) => setLogDuration(e.target.value)} className="w-full p-4 bg-stone-50 rounded-2xl font-bold text-xl" placeholder="0" /></div>
+                                        <button onClick={handleSaveSession} disabled={!logSubjectId || !logDuration} className="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-lg mt-4 disabled:opacity-50">Salvar</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'history' && (
+                                <div className="space-y-3 pb-20">
+                                    <h2 className="font-bold text-lg px-2">Histórico</h2>
+                                    {sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).map(s => {
+                                        const sub = subjects.find(sb => sb.id === s.subjectId);
+                                        return (
+                                            <div key={s.id} className="bg-white p-4 rounded-2xl shadow-sm border border-stone-50">
+                                                <div className="flex justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold" style={{color: sub?.color}}>{sub?.name}</h4>
+                                                        <p className="text-xs text-stone-400">{new Date(s.date).toLocaleDateString()}</p>
+                                                    </div>
+                                                    <span className="font-bold text-stone-700">{s.duration} min</span>
+                                                </div>
+                                                <div className="flex justify-end gap-3 mt-2 pt-2 border-t border-stone-100">
+                                                    <button onClick={() => handleEditSession(s)} className="text-xs font-bold text-sky-600"><i className="fa-solid fa-pen"></i> Editar</button>
+                                                    <button onClick={() => handleDeleteSession(s.id)} className="text-xs font-bold text-rose-500"><i className="fa-solid fa-trash"></i> Excluir</button>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </main>
+
+                        <nav className="absolute bottom-6 left-6 right-6 bg-white rounded-2xl shadow-lg p-2 flex justify-around items-center border border-stone-100 z-30">
+                            <NavButton icon="fa-chart-pie" label="Resumo" targetView="dashboard" />
+                            <NavButton icon="fa-book" label="Matérias" targetView="subjects" />
+                            <button onClick={() => { setView('log'); setEditingSessionId(null); setLogDuration(''); setLogNotes(''); }} className="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-8 shadow-lg border-4 border-[#FDFBF7]"><i className="fa-solid fa-plus text-xl"></i></button>
+                            <NavButton icon="fa-calendar-days" label="Histórico" targetView="history" />
+                            <div className="w-10 opacity-0"></div>
+                        </nav>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EstudaMim />);
+    </script>
+</body>
+</html>
