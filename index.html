@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- 3. Firebase SDKs -->
+    <!-- 3. Firebase SDKs (Essenciais para o Login) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -74,7 +74,7 @@
         <!-- ========================== -->
         <!--      APP PRINCIPAL         -->
         <!-- ========================== -->
-        <div id="app-content" class="hidden flex-col h-full">
+        <div id="app-content" class="hidden flex-col h-full absolute inset-0 z-10 bg-[#FDFBF7]">
             
             <!-- Header -->
             <header class="px-6 pt-10 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 flex justify-between items-center shrink-0">
@@ -280,22 +280,27 @@
         ];
 
         // --- LOGIN & INICIALIZAÇÃO ---
-        if(auth) {
-            auth.onAuthStateChanged((user) => {
-                const as = document.getElementById('auth-screen'), ac = document.getElementById('app-content');
-                if (user) {
-                    currentUser = user; 
-                    as.classList.add('hidden'); 
-                    ac.classList.remove('hidden'); ac.classList.add('flex');
-                    switchView('dashboard'); 
-                    startListeners();
-                } else {
-                    currentUser = null; 
-                    as.classList.remove('hidden'); 
-                    ac.classList.add('hidden'); ac.classList.remove('flex');
-                }
-            });
-        }
+        // Espera a janela carregar para garantir que o Firebase esteja pronto
+        window.onload = function() {
+            if(auth) {
+                auth.onAuthStateChanged((user) => {
+                    const as = document.getElementById('auth-screen'), ac = document.getElementById('app-content');
+                    if (user) {
+                        currentUser = user; 
+                        as.classList.add('hidden'); 
+                        ac.classList.remove('hidden'); ac.classList.add('flex');
+                        switchView('dashboard'); 
+                        startListeners();
+                    } else {
+                        currentUser = null; 
+                        as.classList.remove('hidden'); 
+                        ac.classList.add('hidden'); ac.classList.remove('flex');
+                    }
+                });
+            } else {
+                alert("Erro Crítico: O Firebase não carregou. Verifique sua internet.");
+            }
+        };
 
         async function handleLogin() {
             const email = document.getElementById('email').value, pass = document.getElementById('password').value;
@@ -311,7 +316,7 @@
                         DEFAULT_SUBJECTS.forEach(s => batch.set(db.collection('users').doc(auth.currentUser.uid).collection('subjects').doc(), {name: s.name, color: s.color, createdAt: Date.now()}));
                         await batch.commit();
                     } catch (e2) { err.innerText = (e2.code==='auth/weak-password')?"Senha fraca (min 6).":e2.message; }
-                } else { err.innerText = e.message; }
+                } else { err.innerText = "Erro: Verifique email/senha ou sua internet."; }
             }
             loader.classList.add('hidden'); btnT.classList.remove('hidden');
         }
