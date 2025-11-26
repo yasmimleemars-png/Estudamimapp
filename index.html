@@ -18,13 +18,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* --- ESTILOS VISUAIS --- */
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Lato', sans-serif; }
         body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; }
-        
         .hidden { display: none !important; }
-        
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
         
@@ -36,28 +33,24 @@
 
         .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
         .nav-btn.active i { color: #E88D93; }
+
+        /* Estilo dos Filtros */
+        .filter-btn { @apply px-3 py-1 rounded-full text-xs font-bold border border-transparent text-stone-400 transition-all; }
+        .filter-btn.active { @apply bg-stone-800 text-white shadow-md; }
     </style>
 </head>
 <body class="font-sans text-stone-800 h-screen flex justify-center bg-stone-100">
 
     <div class="w-full max-w-md bg-[#FDFBF7] shadow-2xl relative flex flex-col h-full overflow-hidden">
         
-        <!-- ========================== -->
-        <!--      TELA DE LOGIN         -->
-        <!-- ========================== -->
+        <!-- LOGIN -->
         <div id="auth-screen" class="absolute inset-0 z-50 bg-[#FDFBF7] flex flex-col items-center justify-center p-8 animate-fade">
             <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
             <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
             <p class="text-stone-400 text-sm mb-10 text-center font-medium">Concursos e Estudos na Nuvem.</p>
-
             <div class="w-full space-y-4">
-                <div>
-                    <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all placeholder-stone-300" placeholder="Seu e-mail">
-                </div>
-                <div>
-                    <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all placeholder-stone-300" placeholder="Sua senha">
-                </div>
-                
+                <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 placeholder-stone-300" placeholder="Seu e-mail">
+                <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 placeholder-stone-300" placeholder="Sua senha">
                 <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
                     <span id="btn-text">Entrar / Criar Conta</span>
                     <div id="auth-loader" class="loader hidden"></div>
@@ -66,12 +59,8 @@
             </div>
         </div>
 
-        <!-- ========================== -->
-        <!--      APP PRINCIPAL         -->
-        <!-- ========================== -->
+        <!-- APP PRINCIPAL -->
         <div id="app-content" class="hidden flex-col h-full">
-            
-            <!-- Header -->
             <header class="px-6 pt-10 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 flex justify-between items-center shrink-0">
                 <div>
                     <h1 class="text-3xl font-serif font-black text-stone-800 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
@@ -82,15 +71,24 @@
                 </button>
             </header>
 
-            <!-- Conteúdo com Scroll -->
             <main class="flex-1 overflow-y-auto p-6 pb-28 custom-scrollbar">
                 
-                <!-- VIEW: DASHBOARD -->
+                <!-- DASHBOARD (Resumo) -->
                 <div id="view-dashboard" class="space-y-6 animate-fade">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
-                        <h2 class="font-bold text-stone-700 mb-4 text-lg border-l-4 border-rose-300 pl-3">Desempenho</h2>
+                        <div class="flex justify-between items-center mb-4 border-l-4 border-rose-300 pl-3">
+                            <h2 class="font-bold text-stone-700 text-lg">Desempenho</h2>
+                        </div>
                         
-                        <!-- Gráfico -->
+                        <!-- FILTROS DO GRÁFICO -->
+                        <div class="flex justify-center gap-2 mb-4 bg-stone-50 p-1 rounded-full w-fit mx-auto">
+                            <button onclick="setDashboardRange('day')" id="filter-day" class="filter-btn px-4 py-1 rounded-full text-xs font-bold text-stone-400">Hoje</button>
+                            <button onclick="setDashboardRange('week')" id="filter-week" class="filter-btn px-4 py-1 rounded-full text-xs font-bold text-stone-400">Semana</button>
+                            <button onclick="setDashboardRange('month')" id="filter-month" class="filter-btn px-4 py-1 rounded-full text-xs font-bold text-stone-400">Mês</button>
+                            <button onclick="setDashboardRange('all')" id="filter-all" class="filter-btn active px-4 py-1 rounded-full text-xs font-bold bg-stone-800 text-white">Geral</button>
+                        </div>
+
+                        <!-- GRÁFICO -->
                         <div class="h-64 flex items-center justify-center relative my-4">
                             <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #eee; position: relative; transition: background 0.5s;"></div>
                             <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
@@ -98,7 +96,6 @@
                                 <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
                             </div>
                         </div>
-                        
                         <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6"></div>
                     </div>
 
@@ -114,58 +111,75 @@
                     </div>
                 </div>
 
-                <!-- VIEW: MATÉRIAS -->
+                <!-- MATÉRIAS -->
                 <div id="view-subjects" class="space-y-6 hidden animate-fade">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
                         <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Disciplina</h2>
                         <input id="sub-name" class="w-full p-4 bg-stone-50 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Ex: Direito Civil...">
-                        
                         <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Cor da Matéria</div>
                         <div id="color-picker" class="flex gap-3 mb-6 overflow-x-auto pb-2 px-1"></div>
-                        
-                        <button onclick="addSubject()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all">
-                            Adicionar
-                        </button>
+                        <button onclick="addSubject()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all">Adicionar</button>
                     </div>
-
                     <div class="pl-2">
                         <h3 class="text-xs font-bold text-stone-400 uppercase mb-3">Minhas Matérias</h3>
                         <div id="subjects-list" class="space-y-3"></div>
+                        <div class="mt-8 pt-6 border-t border-stone-200">
+                            <button onclick="resetToConcurso()" class="w-full py-3 border-2 border-rose-200 text-rose-500 rounded-2xl font-bold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-right"></i> Restaurar Padrão Concurso</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- VIEW: REGISTRO (LOG) -->
+                <!-- REGISTRO (LOG) -->
                 <div id="view-log" class="hidden h-full flex flex-col animate-fade">
                     <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
-                        <h2 class="text-center font-serif font-bold text-2xl mb-8 text-stone-800">Registrar Estudo</h2>
                         
-                        <div class="space-y-6 flex-1">
-                            <div>
-                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label>
-                                <input id="log-date" type="date" class="w-full p-4 bg-stone-50 rounded-2xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200">
-                            </div>
-                            
-                            <div>
-                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
-                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
-                            </div>
-                            
-                            <div>
-                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Tempo (Minutos)</label>
-                                <div class="relative">
-                                    <input id="log-duration" type="number" class="w-full p-4 pl-12 bg-stone-50 rounded-2xl text-2xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0">
-                                    <i class="fa-regular fa-clock absolute left-5 top-[30px] text-stone-400 text-lg"></i>
-                                </div>
-                            </div>
+                        <!-- ABAS: MANUAL vs CRONÔMETRO -->
+                        <div class="flex justify-center mb-6 bg-stone-100 p-1 rounded-2xl">
+                            <button onclick="setLogMode('manual')" id="tab-manual" class="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-white shadow-sm text-stone-800">Manual</button>
+                            <button onclick="setLogMode('timer')" id="tab-timer" class="flex-1 py-3 rounded-xl font-bold text-sm transition-all text-stone-400 hover:text-stone-600">Cronômetro</button>
                         </div>
-                        
-                        <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-6 shadow-xl shadow-rose-200 hover:bg-rose-500 active:scale-95 transition-all">
-                            Salvar Sessão
-                        </button>
+
+                        <!-- CONTEÚDO MANUAL -->
+                        <div id="log-content-manual" class="space-y-6 flex-1">
+                            <h2 class="text-center font-serif font-bold text-2xl text-stone-800">Registrar Estudo</h2>
+                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label><input id="log-date" type="date" class="w-full p-4 bg-stone-50 rounded-2xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200"></div>
+                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label><div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-40 overflow-y-auto custom-scrollbar pr-1"></div></div>
+                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Tempo (Minutos)</label><div class="relative"><input id="log-duration" type="number" class="w-full p-4 pl-12 bg-stone-50 rounded-2xl text-2xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0"><i class="fa-regular fa-clock absolute left-5 top-[30px] text-stone-400 text-lg"></i></div></div>
+                            <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-6 shadow-xl shadow-rose-200 hover:bg-rose-500 active:scale-95 transition-all">Salvar Sessão</button>
+                        </div>
+
+                        <!-- CONTEÚDO CRONÔMETRO -->
+                        <div id="log-content-timer" class="hidden flex-col items-center flex-1 justify-between py-4">
+                            <div class="w-full mb-4 text-left">
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">O que vai estudar?</label>
+                                <div id="timer-subjects-grid" class="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto custom-scrollbar"></div>
+                            </div>
+
+                            <!-- Relógio -->
+                            <div class="w-64 h-64 rounded-full border-8 border-rose-100 flex flex-col items-center justify-center relative bg-stone-50 shadow-inner mb-6">
+                                <span id="timer-display" class="text-6xl font-black text-stone-800 font-mono tracking-tighter">00:00</span>
+                                <span class="text-xs font-bold text-stone-400 uppercase mt-2 tracking-widest">Tempo Decorrido</span>
+                                <div id="timer-indicator" class="w-3 h-3 bg-rose-500 rounded-full absolute top-4 animate-pulse hidden"></div>
+                            </div>
+
+                            <!-- Controles -->
+                            <div class="flex gap-4 w-full">
+                                <button onclick="toggleTimer()" id="btn-timer-toggle" class="flex-1 py-4 bg-stone-800 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-stone-900 transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-play"></i> Iniciar
+                                </button>
+                                <button onclick="resetTimer()" class="w-16 py-4 bg-stone-200 text-stone-500 rounded-2xl font-bold hover:bg-stone-300 transition-all">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </div>
+                            <button onclick="saveTimerSession()" id="btn-timer-save" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-xl mt-4 disabled:opacity-50 disabled:shadow-none" disabled>
+                                Salvar Estudo
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- VIEW: HISTÓRICO -->
+                <!-- HISTÓRICO -->
                 <div id="view-history" class="space-y-4 hidden animate-fade">
                     <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
                         <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
@@ -173,41 +187,19 @@
                     </div>
                     <div id="history-list" class="space-y-3 pb-20"></div>
                 </div>
-
             </main>
 
-            <!-- Navegação Inferior -->
             <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
-                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
-                    <i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i>
-                    <span class="text-[10px] transition-colors">Resumo</span>
-                </button>
-                
-                <button onclick="switchView('subjects')" id="nav-subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
-                    <i class="fa-solid fa-book text-xl mb-1 transition-colors"></i>
-                    <span class="text-[10px] transition-colors">Matérias</span>
-                </button>
-                
-                <button onclick="prepareLog()" class="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-10 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                </button>
-                
-                <button onclick="switchView('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
-                    <i class="fa-solid fa-list-ul text-xl mb-1 transition-colors"></i>
-                    <span class="text-[10px] transition-colors">Histórico</span>
-                </button>
-                
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i><span class="text-[10px] transition-colors">Resumo</span></button>
+                <button onclick="switchView('subjects')" id="nav-subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-book text-xl mb-1 transition-colors"></i><span class="text-[10px] transition-colors">Matérias</span></button>
+                <button onclick="prepareLog()" class="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-10 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]"><i class="fa-solid fa-plus text-xl"></i></button>
+                <button onclick="switchView('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-list-ul text-xl mb-1 transition-colors"></i><span class="text-[10px] transition-colors">Histórico</span></button>
                 <div class="w-2 opacity-0"></div>
             </nav>
-
         </div>
     </div>
 
-    <!-- ========================== -->
-    <!--     LÓGICA JAVASCRIPT      -->
-    <!-- ========================== -->
     <script>
-        // --- 1. CONFIGURAÇÃO (Sua chave já está aqui) ---
         const firebaseConfig = {
           apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
           authDomain: "estudamim-e5b35.firebaseapp.com",
@@ -217,293 +209,220 @@
           appId: "1:593504107114:web:0ff19a1fb6938da0d3e813"
         };
 
-        // --- 2. INICIALIZAÇÃO ---
         let auth, db, currentUser = null;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.firestore();
-        } catch (e) { console.error(e); }
+        try { firebase.initializeApp(firebaseConfig); auth = firebase.auth(); db = firebase.firestore(); } catch (e) { console.error(e); }
 
-        // --- 3. DADOS PADRÃO ---
-        let subjects = [], sessions = [];
-        let selectedColor = '#E88D93';
-        let selectedSubjectId = null;
+        let subjects = [], sessions = [], selectedColor = '#E88D93', selectedSubjectId = null;
+        let dashboardRange = 'all'; // all, day, week, month
+        let timerInterval = null, timerSeconds = 0, isTimerRunning = false;
+        
+        const COLORS = ['#E88D93', '#3B7CA8', '#1E40AF', '#D4A373', '#8D6E63', '#5D4037', '#A8D5BA', '#5F6F52', '#93C5FD', '#C084FC', '#FCD34D', '#FCA5A5'];
+        const DEFAULT_SUBJECTS = [{ name: 'Língua Portuguesa', color: '#E88D93' }, { name: 'Raciocínio Lógico', color: '#3B7CA8' }, { name: 'Atualidades', color: '#FCD34D' }, { name: 'Informática', color: '#1E40AF' }, { name: 'Direito Administrativo', color: '#5D4037' }, { name: 'Direito Penal', color: '#5F6F52' }, { name: 'Direito Constitucional', color: '#D4A373' }, { name: 'Arquivologia', color: '#8D6E63' }, { name: 'Simulados', color: '#C084FC' }];
 
-        // Paleta de Cores Expandida (Baseada na foto: Bege, Jeans, Marrom, Rosa)
-        const COLORS = [
-            '#E88D93', // Rosa Nariz (Original)
-            '#3B7CA8', // Jeans Azul (Original)
-            '#1E40AF', // Jeans Escuro
-            '#D4A373', // Bege Tapete
-            '#8D6E63', // Marrom Claro
-            '#5D4037', // Marrom Café
-            '#A8D5BA', // Verde Menta
-            '#5F6F52', // Verde Militar
-            '#93C5FD', // Azul Céu
-            '#C084FC', // Roxo Suave
-            '#FCD34D', // Ouro Velho
-            '#FCA5A5'  // Vermelho Claro
-        ];
-
-        // Lista de Matérias para Novas Contas
-        const DEFAULT_SUBJECTS = [
-            { name: 'Língua Portuguesa', color: '#E88D93' },
-            { name: 'Raciocínio Lógico', color: '#3B7CA8' },
-            { name: 'Atualidades', color: '#FCD34D' },
-            { name: 'Informática', color: '#1E40AF' },
-            { name: 'Direito Administrativo', color: '#5D4037' },
-            { name: 'Direito Penal', color: '#5F6F52' },
-            { name: 'Direito Constitucional', color: '#D4A373' },
-            { name: 'Arquivologia', color: '#8D6E63' },
-            { name: 'Simulados', color: '#C084FC' }
-        ];
-
-        // --- 4. LOGIN & CRIAÇÃO ---
         if(auth) {
             auth.onAuthStateChanged((user) => {
-                if (user) {
-                    currentUser = user;
-                    document.getElementById('auth-screen').classList.add('hidden');
-                    document.getElementById('app-content').classList.remove('hidden');
-                    document.getElementById('app-content').classList.add('flex');
-                    switchView('dashboard');
-                    startListeners();
-                } else {
-                    currentUser = null;
-                    document.getElementById('auth-screen').classList.remove('hidden');
-                    document.getElementById('app-content').classList.add('hidden');
-                    document.getElementById('app-content').classList.remove('flex');
-                }
+                const as = document.getElementById('auth-screen'), ac = document.getElementById('app-content');
+                if (user) { currentUser = user; as.classList.add('hidden'); ac.classList.remove('hidden'); ac.classList.add('flex'); switchView('dashboard'); startListeners(); } 
+                else { currentUser = null; as.classList.remove('hidden'); ac.classList.add('hidden'); ac.classList.remove('flex'); }
             });
         }
 
         async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            const errorMsg = document.getElementById('auth-error');
-            const loader = document.getElementById('auth-loader');
-            const btnText = document.getElementById('btn-text');
-
-            if (!email || !pass) { errorMsg.innerText = "Preencha tudo!"; return; }
-            
-            errorMsg.innerText = "";
-            btnText.classList.add('hidden');
-            loader.classList.remove('hidden');
-
-            try {
-                await auth.signInWithEmailAndPassword(email, pass);
-            } catch (error) {
-                const loginErrors = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
-                if (loginErrors.includes(error.code)) {
+            const email = document.getElementById('email').value, pass = document.getElementById('password').value;
+            const err = document.getElementById('auth-error'), loader = document.getElementById('auth-loader'), btnT = document.getElementById('btn-text');
+            if (!email || !pass) { err.innerText = "Preencha tudo!"; return; }
+            err.innerText = ""; btnT.classList.add('hidden'); loader.classList.remove('hidden');
+            try { await auth.signInWithEmailAndPassword(email, pass); } 
+            catch (e) {
+                if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'].includes(e.code)) {
                     try {
-                        // CRIAÇÃO DE CONTA NOVA
                         await auth.createUserWithEmailAndPassword(email, pass);
-                        
-                        // Adiciona as matérias padrão AUTOMATICAMENTE
                         const batch = db.batch();
-                        const userSubRef = db.collection('users').doc(auth.currentUser.uid).collection('subjects');
-                        
-                        DEFAULT_SUBJECTS.forEach((sub) => {
-                            const newRef = userSubRef.doc();
-                            batch.set(newRef, { name: sub.name, color: sub.color, createdAt: Date.now() });
-                        });
-                        
+                        DEFAULT_SUBJECTS.forEach(s => batch.set(db.collection('users').doc(auth.currentUser.uid).collection('subjects').doc(), {name: s.name, color: s.color, createdAt: Date.now()}));
                         await batch.commit();
-
-                    } catch (createError) {
-                        errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
-                    }
-                } else {
-                    errorMsg.innerText = "Erro: " + error.message;
-                }
+                    } catch (e2) { err.innerText = (e2.code==='auth/weak-password')?"Senha fraca (min 6).":e2.message; }
+                } else { err.innerText = e.message; }
             }
-            loader.classList.add('hidden');
-            btnText.classList.remove('hidden');
+            loader.classList.add('hidden'); btnT.classList.remove('hidden');
         }
-
         function handleLogout() { auth.signOut(); }
-
-        // --- 5. BANCO DE DADOS ---
-        function startListeners() {
-            db.collection('users').doc(currentUser.uid).collection('subjects')
-              .orderBy('createdAt', 'asc')
-              .onSnapshot(snap => {
-                  subjects = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                  renderSubjects(); renderSubjectsGrid(); renderDashboard();
-              });
-
-            db.collection('users').doc(currentUser.uid).collection('sessions')
-              .orderBy('createdAt', 'desc')
-              .onSnapshot(snap => {
-                  sessions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                  renderHistory(); renderDashboard();
-              });
-        }
-
-        // --- 6. NAVEGAÇÃO ---
-        function switchView(viewName) {
-            ['dashboard', 'subjects', 'log', 'history'].forEach(v => {
-                const el = document.getElementById(`view-${v}`);
-                if(el) el.classList.add('hidden');
-                const btn = document.getElementById(`nav-${v}`);
-                if(btn) btn.classList.remove('active');
-            });
-            const targetEl = document.getElementById(`view-${viewName}`);
-            if(targetEl) targetEl.classList.remove('hidden');
-            const targetBtn = document.getElementById(`nav-${viewName}`);
-            if(targetBtn) targetBtn.classList.add('active');
-            if(viewName === 'dashboard') renderDashboard();
-        }
-
-        // --- 7. RENDERIZAÇÃO ---
         
-        function renderSubjects() {
-            const list = document.getElementById('subjects-list');
-            const picker = document.getElementById('color-picker');
-            
-            if(subjects.length === 0) {
-                list.innerHTML = '<p class="text-stone-300 text-sm italic text-center mt-4">Nenhuma matéria cadastrada.</p>';
-            } else {
-                list.innerHTML = subjects.map(s => `
-                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
-                            <span class="font-bold text-stone-700 text-lg">${s.name}</span>
-                        </div>
-                        <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `).join('');
-            }
-
-            picker.innerHTML = COLORS.map(c => `
-                <button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c ? 'border-stone-800 scale-110 shadow-md' : 'border-transparent'}" style="background-color:${c}"></button>
-            `).join('');
+        async function resetToConcurso() {
+            if(!confirm("TEM CERTEZA? Isso apagará todas as matérias atuais.")) return;
+            try {
+                const snap = await db.collection('users').doc(currentUser.uid).collection('subjects').get();
+                const batchDel = db.batch(); snap.docs.forEach(d => batchDel.delete(d.ref)); await batchDel.commit();
+                const batchAdd = db.batch(); DEFAULT_SUBJECTS.forEach(s => batchAdd.set(db.collection('users').doc(currentUser.uid).collection('subjects').doc(), {name: s.name, color: s.color, createdAt: Date.now()})); await batchAdd.commit();
+                alert("Restaurado!");
+            } catch(e) { alert("Erro: " + e.message); }
         }
 
-        function prepareLog() {
-            switchView('log');
-            document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('log-duration').value = '';
-            selectedSubjectId = null;
-            renderSubjectsGrid();
+        function startListeners() {
+            db.collection('users').doc(currentUser.uid).collection('subjects').orderBy('createdAt', 'asc').onSnapshot(s => {subjects = s.docs.map(d => ({id:d.id, ...d.data()})); renderSubjects(); renderSubjectsGrid(); renderDashboard();});
+            db.collection('users').doc(currentUser.uid).collection('sessions').orderBy('createdAt', 'desc').onSnapshot(s => {sessions = s.docs.map(d => ({id:d.id, ...d.data()})); renderHistory(); renderDashboard();});
         }
+        function switchView(v) { ['dashboard', 'subjects', 'log', 'history'].forEach(x => {document.getElementById(`view-${x}`).classList.add('hidden'); document.getElementById(`nav-${x}`).classList.remove('active');}); document.getElementById(`view-${v}`).classList.remove('hidden'); document.getElementById(`nav-${v}`).classList.add('active'); if(v==='dashboard') renderDashboard(); }
 
-        function renderSubjectsGrid() {
-            const grid = document.getElementById('log-subjects-grid');
-            if(subjects.length === 0) {
-                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>';
-                return;
-            }
-            grid.innerHTML = subjects.map(s => `
-                <button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 hover:opacity-100 transition-all w-full flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full" style="background:${s.color}"></span>
-                    <span class="font-bold text-sm text-stone-600">${s.name}</span>
-                </button>
-            `).join('');
-        }
-
-        function selectLogSubject(id, btn) {
-            selectedSubjectId = id;
-            document.querySelectorAll('.sub-grid-btn').forEach(b => {
-                b.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 transition-all w-full flex items-center gap-2';
+        // --- DASHBOARD E FILTROS ---
+        function setDashboardRange(range) {
+            dashboardRange = range;
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active', 'bg-stone-800', 'text-white');
+                b.classList.add('text-stone-400');
             });
-            btn.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 transition-all w-full flex items-center gap-2';
+            const activeBtn = document.getElementById(`filter-${range}`);
+            if(activeBtn) { activeBtn.classList.add('active', 'bg-stone-800', 'text-white'); activeBtn.classList.remove('text-stone-400'); }
+            renderDashboard();
         }
 
-        function renderHistory() {
-            const list = document.getElementById('history-list');
-            document.getElementById('history-count').innerText = `${sessions.length} regs`;
+        function filterSessions(allSessions) {
+            if(dashboardRange === 'all') return allSessions;
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
             
-            if(sessions.length === 0) { list.innerHTML = '<p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>'; return; }
-            
-            list.innerHTML = sessions.map(s => {
-                const sub = subjects.find(sb => sb.id === s.subjectId) || {name: 'Arquivado', color: '#ccc'};
-                return `
-                    <div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center">
-                        <div class="flex gap-3 items-center">
-                            <div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div>
-                            <div>
-                                <h4 class="font-bold text-stone-700">${sub.name}</h4>
-                                <p class="text-xs text-stone-400 mt-1"><i class="fa-regular fa-calendar"></i> ${s.date.split('-').reverse().join('/')}</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span>
-                            <button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold hover:text-rose-600 uppercase mt-1">Excluir</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            return allSessions.filter(s => {
+                // Tenta corrigir fuso horário simples (considerando data salva como YYYY-MM-DD string)
+                const sDateParts = s.date.split('-');
+                const sTime = new Date(sDateParts[0], sDateParts[1]-1, sDateParts[2]).getTime();
+                
+                if (dashboardRange === 'day') return sTime === startOfDay;
+                if (dashboardRange === 'week') {
+                    const oneWeekAgo = startOfDay - (7 * 24 * 60 * 60 * 1000);
+                    return sTime >= oneWeekAgo;
+                }
+                if (dashboardRange === 'month') {
+                    const sMonth = new Date(sTime).getMonth();
+                    return sMonth === now.getMonth() && new Date(sTime).getFullYear() === now.getFullYear();
+                }
+                return true;
+            });
         }
 
         function renderDashboard() {
-            let total = 0, counts = {};
-            sessions.forEach(s => {
-                total += s.duration;
-                const sub = subjects.find(sb => sb.id === s.subjectId);
-                if(sub) {
-                    if(!counts[sub.name]) counts[sub.name] = {val:0, color: sub.color};
-                    counts[sub.name].val += s.duration;
-                }
-            });
-
-            document.getElementById('total-hours').innerText = (total/60).toFixed(1);
-            document.getElementById('total-sessions').innerText = sessions.length;
+            const filteredSessions = filterSessions(sessions);
+            let total=0, counts={}; 
+            filteredSessions.forEach(s=>{total+=s.duration; const sub=subjects.find(sb=>sb.id===s.subjectId); if(sub){ if(!counts[sub.name])counts[sub.name]={val:0,color:sub.color}; counts[sub.name].val+=s.duration;}});
             
-            let top = '-', max = 0;
-            for(let k in counts) if(counts[k].val > max) { max = counts[k].val; top = k; }
-            document.getElementById('top-subject').innerText = top;
-
-            const chart = document.getElementById('chart-pie');
-            const legend = document.getElementById('chart-legend');
+            document.getElementById('total-hours').innerText=(total/60).toFixed(1); document.getElementById('total-sessions').innerText=filteredSessions.length;
+            let top='-', max=0; for(let k in counts)if(counts[k].val>max){max=counts[k].val; top=k;} document.getElementById('top-subject').innerText=top;
             
-            if(total === 0) {
-                chart.style.background = '#f3f4f6';
-                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados. Adicione matérias e estudos!</span>';
-                return;
-            }
-
-            let grad = [], pos = 0;
-            legend.innerHTML = '';
-            for(let k in counts) {
-                const p = (counts[k].val / total) * 100;
-                grad.push(`${counts[k].color} ${pos}% ${pos + p}%`);
-                pos += p;
-                legend.innerHTML += `
-                    <div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm">
-                        <div class="w-3 h-3 rounded-full shadow-sm" style="background:${counts[k].color}"></div>
-                        <span class="text-xs font-bold text-stone-600">${Math.round(p)}%</span>
-                    </div>`;
-            }
-            chart.style.background = `conic-gradient(${grad.join(', ')})`;
+            const c=document.getElementById('chart-pie'), l=document.getElementById('chart-legend');
+            if(total===0){ c.style.background='#f3f4f6'; l.innerHTML='<span class="text-xs text-stone-400 italic">Sem dados neste período</span>'; return; }
+            let g=[], p=0; l.innerHTML=''; for(let k in counts){ const pc=(counts[k].val/total)*100; g.push(`${counts[k].color} ${p}% ${p+pc}%`); p+=pc; l.innerHTML+=`<div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm"><div class="w-3 h-3 rounded-full shadow-sm" style="background:${counts[k].color}"></div><span class="text-xs font-bold text-stone-600">${Math.round(pc)}%</span></div>`; } c.style.background=`conic-gradient(${g.join(', ')})`;
         }
 
-        // --- 8. AÇÕES ---
-        async function addSubject() {
-            const nameIn = document.getElementById('sub-name');
-            if(!nameIn.value) return alert("Digite o nome!");
-            try {
-                await db.collection('users').doc(currentUser.uid).collection('subjects').add({name: nameIn.value, color: selectedColor, createdAt: Date.now()});
-                nameIn.value = '';
-                alert("Matéria criada!");
-            } catch(e) { alert("Erro: " + e.message); }
+        // --- LÓGICA DO LOG (Manual vs Timer) ---
+        function setLogMode(mode) {
+            document.getElementById('log-content-manual').classList.toggle('hidden', mode !== 'manual');
+            document.getElementById('log-content-timer').classList.toggle('hidden', mode !== 'timer');
+            document.getElementById('log-content-timer').style.display = mode === 'timer' ? 'flex' : 'none'; // Fix flex issue
+            
+            // Estilo das abas
+            document.getElementById('tab-manual').className = mode === 'manual' ? "flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-white shadow-sm text-stone-800" : "flex-1 py-3 rounded-xl font-bold text-sm transition-all text-stone-400 hover:text-stone-600";
+            document.getElementById('tab-timer').className = mode === 'timer' ? "flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-white shadow-sm text-stone-800" : "flex-1 py-3 rounded-xl font-bold text-sm transition-all text-stone-400 hover:text-stone-600";
+
+            // Se for timer, carrega o grid lá também
+            if(mode === 'timer') renderTimerSubjectsGrid();
         }
 
-        async function saveSession() {
-            const date = document.getElementById('log-date').value;
-            const dur = document.getElementById('log-duration').value;
-            if(!selectedSubjectId) return alert("Escolha a matéria!");
-            if(!dur) return alert("Digite o tempo!");
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            const indicator = document.getElementById('timer-indicator');
+            const saveBtn = document.getElementById('btn-timer-save');
+            
+            if(isTimerRunning) {
+                // Pausar
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Continuar';
+                btn.className = "flex-1 py-4 bg-sky-600 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-sky-700 transition-all flex items-center justify-center gap-2";
+                indicator.classList.add('hidden');
+                if(timerSeconds > 0) saveBtn.disabled = false;
+            } else {
+                // Iniciar
+                if(!selectedSubjectId) return alert("Selecione a matéria primeiro!");
+                isTimerRunning = true;
+                saveBtn.disabled = true;
+                const startTime = Date.now() - (timerSeconds * 1000);
+                timerInterval = setInterval(() => {
+                    timerSeconds = Math.floor((Date.now() - startTime) / 1000);
+                    updateTimerDisplay();
+                }, 1000);
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pausar';
+                btn.className = "flex-1 py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-rose-500 transition-all flex items-center justify-center gap-2";
+                indicator.classList.remove('hidden');
+            }
+        }
+
+        function resetTimer() {
+            if(isTimerRunning) toggleTimer(); // Pausa antes
+            timerSeconds = 0;
+            updateTimerDisplay();
+            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play"></i> Iniciar';
+            document.getElementById('btn-timer-toggle').className = "flex-1 py-4 bg-stone-800 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-stone-900 transition-all flex items-center justify-center gap-2";
+            document.getElementById('btn-timer-save').disabled = true;
+        }
+
+        function updateTimerDisplay() {
+            const hrs = Math.floor(timerSeconds / 3600);
+            const mins = Math.floor((timerSeconds % 3600) / 60);
+            const secs = timerSeconds % 60;
+            const pad = (n) => n < 10 ? '0'+n : n;
+            const text = hrs > 0 ? `${hrs}:${pad(mins)}:${pad(secs)}` : `${pad(mins)}:${pad(secs)}`;
+            document.getElementById('timer-display').innerText = text;
+        }
+
+        async function saveTimerSession() {
+            if(!selectedSubjectId) return alert("Matéria?");
+            const mins = Math.ceil(timerSeconds / 60);
+            if(mins === 0) return alert("Estude pelo menos um pouquinho!");
+            
+            const today = new Date().toISOString().split('T')[0];
             try {
-                await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId: selectedSubjectId, date: date, duration: parseInt(dur), createdAt: Date.now()});
+                await db.collection('users').doc(currentUser.uid).collection('sessions').add({
+                    subjectId: selectedSubjectId, date: today, duration: mins, createdAt: Date.now()
+                });
+                resetTimer();
                 switchView('dashboard');
-            } catch(e) { alert("Erro: " + e.message); }
+                setDashboardRange('day'); // Mostra o resultado de hoje
+            } catch(e) { alert(e.message); }
         }
 
-        async function deleteSubject(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('subjects').doc(id).delete(); }
-        async function deleteSession(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete(); }
+        function renderTimerSubjectsGrid() {
+            const grid = document.getElementById('timer-subjects-grid');
+            if(!subjects.length) return grid.innerHTML='<p class="text-xs">Sem matérias</p>';
+            grid.innerHTML = subjects.map(s => `
+                <button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-2 rounded-xl border-2 text-left bg-white border-stone-100 text-stone-500 w-full flex items-center gap-2 text-xs h-10">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${s.color}"></span>
+                    <span class="font-bold truncate">${s.name}</span>
+                </button>
+            `).join('');
+            
+            // Re-seleciona se já tiver um selecionado
+            if(selectedSubjectId) {
+                // Lógica simplificada: Apenas renderiza, usuário clica de novo se mudar
+            }
+        }
 
+        // --- OUTRAS FUNÇÕES ---
+        function renderSubjects() {
+            document.getElementById('subjects-list').innerHTML = subjects.map(s => `<div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div><span class="font-bold text-stone-700 text-lg">${s.name}</span></div><button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+            document.getElementById('color-picker').innerHTML = COLORS.map(c => `<button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c?'border-stone-800 scale-110 shadow-md':'border-transparent'}" style="background-color:${c}"></button>`).join('');
+        }
+        function prepareLog() { switchView('log'); setLogMode('manual'); document.getElementById('log-date').value = new Date().toISOString().split('T')[0]; document.getElementById('log-duration').value = ''; selectedSubjectId = null; renderSubjectsGrid(); }
+        function renderSubjectsGrid() { const g=document.getElementById('log-subjects-grid'); if(!subjects.length)return g.innerHTML='<p class="col-span-2 text-center text-xs text-rose-500 font-bold">Sem matérias</p>'; g.innerHTML=subjects.map(s => `<button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${s.color}"></span><span class="font-bold text-sm text-stone-600">${s.name}</span></button>`).join(''); }
+        function selectLogSubject(id, btn) { 
+            selectedSubjectId = id; 
+            document.querySelectorAll('.sub-grid-btn').forEach(b => b.className='sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2'); 
+            // Marca o botão clicado (seja no manual ou timer)
+            if(btn) btn.className='sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 w-full flex items-center gap-2';
+        }
+        function renderHistory() { document.getElementById('history-count').innerText = `${sessions.length} regs`; document.getElementById('history-list').innerHTML = sessions.length ? sessions.map(s => { const sub = subjects.find(sb=>sb.id===s.subjectId)||{name:'Arquivado',color:'#ccc'}; return `<div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center"><div class="flex gap-3 items-center"><div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div><div><h4 class="font-bold text-stone-700">${sub.name}</h4><p class="text-xs text-stone-400 mt-1">${s.date.split('-').reverse().join('/')}</p></div></div><div class="text-right"><span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span><button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold uppercase mt-1">Excluir</button></div></div>`; }).join('') : '<p class="text-center text-stone-300 mt-10 italic">Vazio</p>'; }
+
+        async function addSubject() { const n=document.getElementById('sub-name'); if(!n.value)return alert("Nome?"); try{await db.collection('users').doc(currentUser.uid).collection('subjects').add({name:n.value,color:selectedColor,createdAt:Date.now()}); n.value=''; alert("Criado!");}catch(e){alert(e.message);} }
+        async function saveSession() { const d=document.getElementById('log-date').value, t=document.getElementById('log-duration').value; if(!selectedSubjectId||!t)return alert("Complete!"); try{await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId:selectedSubjectId,date:d,duration:parseInt(t),createdAt:Date.now()}); switchView('dashboard');}catch(e){alert(e.message);} }
+        async function deleteSubject(id) { if(confirm('Apagar?'))await db.collection('users').doc(currentUser.uid).collection('subjects').doc(id).delete(); }
+        async function deleteSession(id) { if(confirm('Apagar?'))await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete(); }
     </script>
 </body>
 </html>
