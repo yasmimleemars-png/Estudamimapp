@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EstudaMim</title>
     
-    <!-- 1. Design (Tailwind CSS) -->
+    <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- 2. Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- 3. Firebase SDKs -->
+    <!-- 3. Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -21,45 +21,46 @@
         /* ESTILOS GERAIS */
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Lato', sans-serif; }
-        body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
         
-        /* Utilitários de Visibilidade (CRÍTICO PARA FUNCIONAR) */
-        .hidden-force { display: none !important; }
-        .flex-force { display: flex !important; }
+        /* Utilitários */
+        .hidden { display: none !important; }
+        .flex { display: flex !important; }
         
         /* Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
         
-        /* Botões */
-        .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
+        /* Botões Ativos */
+        .nav-btn.active { color: #E88D93; font-weight: bold; }
         .nav-btn.active i { color: #E88D93; }
-        .filter-btn.active { background-color: #292524; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .filter-btn { transition: all 0.2s; }
+        .filter-btn.active { background-color: #292524; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-color: #292524; }
         
         /* Loader */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="font-sans text-stone-800 h-[100dvh] flex flex-col bg-stone-100 overflow-hidden">
+<body class="font-sans text-stone-800 h-[100dvh] w-screen overflow-hidden bg-stone-100 flex justify-center">
 
-    <div class="w-full max-w-md mx-auto bg-[#FDFBF7] shadow-2xl relative flex flex-col h-full">
+    <div class="w-full max-w-md h-full bg-[#FDFBF7] shadow-2xl relative flex flex-col overflow-hidden">
         
         <!-- ========================== -->
         <!--      TELA DE LOGIN         -->
         <!-- ========================== -->
-        <div id="auth-screen" class="absolute inset-0 z-50 bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
+        <div id="auth-screen" class="absolute inset-0 z-[100] bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
             <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
             <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
             <p class="text-stone-400 text-sm mb-10 text-center font-medium">Acompanhe seu progresso.</p>
 
             <div class="w-full space-y-4">
-                <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 placeholder-stone-300 transition-all" placeholder="Seu e-mail">
-                <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 placeholder-stone-300 transition-all" placeholder="Sua senha">
+                <input id="email" type="email" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 placeholder-stone-400" placeholder="Seu e-mail">
+                <input id="password" type="password" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 placeholder-stone-400" placeholder="Sua senha">
                 
                 <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
                     <span id="btn-text">Entrar / Criar Conta</span>
-                    <div id="auth-loader" class="loader hidden-force"></div>
+                    <div id="auth-loader" class="loader hidden"></div>
                 </button>
                 <p id="auth-error" class="text-rose-500 text-xs text-center font-bold min-h-[20px] mt-2"></p>
             </div>
@@ -68,20 +69,20 @@
         <!-- ========================== -->
         <!--      APP PRINCIPAL         -->
         <!-- ========================== -->
-        <div id="app-content" class="hidden-force flex-col h-full w-full bg-[#FDFBF7] relative z-10">
+        <div id="app-content" class="hidden flex-col h-full w-full bg-[#FDFBF7] relative z-10">
             
-            <!-- HEADER -->
-            <header class="px-6 pt-10 pb-4 bg-white/95 backdrop-blur-sm rounded-b-[30px] shadow-sm z-20 flex justify-between items-center shrink-0 border-b border-stone-50">
+            <!-- Header Fixo -->
+            <header class="px-6 pt-12 pb-4 bg-white/90 backdrop-blur-sm border-b border-stone-50 z-20 flex justify-between items-center shrink-0">
                 <div>
                     <h1 class="text-2xl font-serif font-black text-stone-800 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
                     <p class="text-stone-400 text-xs mt-0.5">Foco na aprovação!</p>
                 </div>
-                <button onclick="handleLogout()" class="w-9 h-9 rounded-full bg-stone-50 text-stone-400 hover:bg-rose-100 hover:text-rose-500 transition-colors flex items-center justify-center border border-stone-100">
-                    <i class="fa-solid fa-power-off text-sm"></i>
+                <button onclick="handleLogout()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-400 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center">
+                    <i class="fa-solid fa-power-off text-xs"></i>
                 </button>
             </header>
 
-            <!-- CONTEÚDO (Scroll) -->
+            <!-- Conteúdo Scrollável -->
             <main class="flex-1 overflow-y-auto p-6 pb-32 custom-scrollbar relative w-full">
                 
                 <!-- 1. DASHBOARD -->
@@ -89,120 +90,115 @@
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-stone-50">
                         <div class="flex flex-col items-center mb-4">
                             <h2 class="font-bold text-stone-700 text-lg mb-3 self-start border-l-4 border-rose-300 pl-3">Desempenho</h2>
-                            <div class="flex bg-stone-100 p-1 rounded-full gap-1 w-full justify-between sm:justify-center">
-                                <button onclick="setFilter('day')" id="filter-day" class="filter-btn px-3 py-1 rounded-full text-xs font-bold text-stone-400 flex-1 text-center">Hoje</button>
-                                <button onclick="setFilter('week')" id="filter-week" class="filter-btn px-3 py-1 rounded-full text-xs font-bold text-stone-400 flex-1 text-center">Sem</button>
-                                <button onclick="setFilter('month')" id="filter-month" class="filter-btn px-3 py-1 rounded-full text-xs font-bold text-stone-400 flex-1 text-center">Mês</button>
-                                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active px-3 py-1 rounded-full text-xs font-bold text-stone-400 flex-1 text-center">Geral</button>
+                            <div class="flex bg-stone-100 p-1 rounded-full gap-1 w-full">
+                                <button onclick="setFilter('day')" id="filter-day" class="filter-btn px-2 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase tracking-wider">Hoje</button>
+                                <button onclick="setFilter('week')" id="filter-week" class="filter-btn px-2 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase tracking-wider">Sem</button>
+                                <button onclick="setFilter('month')" id="filter-month" class="filter-btn px-2 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase tracking-wider">Mês</button>
+                                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active px-2 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase tracking-wider">Tudo</button>
                             </div>
                         </div>
                         
+                        <!-- Gráfico -->
                         <div class="h-64 flex items-center justify-center relative my-4">
-                            <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #f3f4f6; position: relative; transition: background 0.5s;"></div>
-                            <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-inner">
+                            <div id="chart-pie" style="width: 200px; height: 200px; border-radius: 50%; background: #f3f4f6; position: relative; transition: background 0.5s;"></div>
+                            <div class="absolute bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-inner">
                                 <span id="total-hours" class="text-4xl font-black text-stone-800 font-serif">0.0</span>
                                 <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
                             </div>
                         </div>
-                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6"></div>
+                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6 min-h-[20px]"></div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-rose-50 p-5 rounded-3xl text-rose-800 border border-rose-100 shadow-sm">
-                            <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Maior Foco</p>
-                            <p id="top-subject" class="font-bold text-lg leading-tight mt-1 truncate">-</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-rose-50 p-4 rounded-3xl text-rose-800 border border-rose-100">
+                            <p class="text-[10px] font-bold opacity-60 uppercase tracking-wide">Maior Foco</p>
+                            <p id="top-subject" class="font-bold text-base leading-tight mt-1 truncate">-</p>
                         </div>
-                        <div class="bg-sky-50 p-5 rounded-3xl text-sky-800 border border-sky-100 shadow-sm">
-                            <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Sessões</p>
-                            <p id="total-sessions" class="font-bold text-lg mt-1">0</p>
+                        <div class="bg-sky-50 p-4 rounded-3xl text-sky-800 border border-sky-100">
+                            <p class="text-[10px] font-bold opacity-60 uppercase tracking-wide">Sessões</p>
+                            <p id="total-sessions" class="font-bold text-base mt-1">0</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. MATÉRIAS -->
-                <div id="view-subjects" class="space-y-6 hidden-force pb-10">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
+                <div id="view-subjects" class="space-y-6 hidden pb-10">
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-stone-50">
                         <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Disciplina</h2>
-                        <input id="sub-name" class="w-full p-4 bg-stone-50 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Ex: Direito Civil...">
+                        <input id="sub-name" class="w-full p-3 bg-stone-50 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Ex: Português...">
                         <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Cor</div>
-                        <div id="color-picker" class="flex gap-3 mb-6 overflow-x-auto pb-2 px-1 custom-scrollbar"></div>
-                        <button onclick="addSubject()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg hover:bg-stone-900 active:scale-95 transition-all">Adicionar</button>
+                        <div id="color-picker" class="flex gap-3 mb-4 overflow-x-auto pb-2 px-1 custom-scrollbar"></div>
+                        <button onclick="addSubject()" class="w-full py-3 bg-stone-800 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-all">Adicionar</button>
                     </div>
 
-                    <div class="pl-2">
-                        <h3 class="text-xs font-bold text-stone-400 uppercase mb-3">Minhas Matérias</h3>
+                    <div class="pl-1">
+                        <h3 class="text-xs font-bold text-stone-400 uppercase mb-3 ml-1">Suas Matérias</h3>
                         <div id="subjects-list" class="space-y-3"></div>
-                        <div class="mt-10 pt-6 border-t border-stone-200 pb-10">
-                            <button onclick="resetToConcurso()" class="w-full py-4 border-2 border-rose-200 text-rose-500 rounded-2xl font-bold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
+                        
+                        <div class="mt-8 pt-6 border-t border-stone-200 pb-10">
+                            <button onclick="resetToConcurso()" class="w-full py-3 border-2 border-rose-200 text-rose-500 rounded-xl font-bold text-xs hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-rotate-right"></i> Restaurar Padrão Concurso
                             </button>
-                            <p class="text-[10px] text-stone-400 text-center mt-2">Apaga tudo e carrega Português, Direito, etc.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. REGISTRO -->
-                <div id="view-log" class="hidden-force h-full flex flex-col pb-10">
-                    <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
-                        <div class="flex bg-stone-100 p-1 rounded-2xl mb-6">
-                            <button onclick="toggleLogMode('manual')" id="tab-manual" class="flex-1 py-3 rounded-xl text-sm font-bold bg-white shadow-sm text-stone-800 transition-all">Manual</button>
-                            <button onclick="toggleLogMode('timer')" id="tab-timer" class="flex-1 py-3 rounded-xl text-sm font-bold text-stone-400 hover:text-stone-600 transition-all">Cronômetro</button>
+                <!-- 3. LOG -->
+                <div id="view-log" class="hidden h-full flex flex-col pb-10">
+                    <div class="bg-white p-5 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
+                        <div class="flex bg-stone-100 p-1 rounded-xl mb-6">
+                            <button onclick="toggleLogMode('manual')" id="tab-manual" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-stone-800 transition-all">Manual</button>
+                            <button onclick="toggleLogMode('timer')" id="tab-timer" class="flex-1 py-2 rounded-lg text-xs font-bold text-stone-400 hover:text-stone-600 transition-all">Cronômetro</button>
                         </div>
 
                         <!-- Manual -->
-                        <div id="mode-manual" class="space-y-6 flex-1">
-                            <h2 class="text-center font-serif font-bold text-2xl text-stone-800">Registrar</h2>
-                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label><input id="log-date" type="date" class="w-full p-4 bg-stone-50 rounded-2xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200"></div>
-                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label><div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-40 overflow-y-auto custom-scrollbar pr-1"></div></div>
-                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Tempo (Minutos)</label><div class="relative"><input id="log-duration" type="number" class="w-full p-4 pl-12 bg-stone-50 rounded-2xl text-2xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0"><i class="fa-regular fa-clock absolute left-5 top-[30px] text-stone-400 text-lg"></i></div></div>
-                            <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-4 shadow-xl hover:bg-rose-500 active:scale-95 transition-all">Salvar</button>
+                        <div id="mode-manual" class="space-y-5 flex-1">
+                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label><input id="log-date" type="date" class="w-full p-3 bg-stone-50 rounded-xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200"></div>
+                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label><div id="log-subjects-grid" class="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto custom-scrollbar"></div></div>
+                            <div><label class="text-xs font-bold text-stone-400 uppercase ml-1">Minutos</label><input id="log-duration" type="number" class="w-full p-3 bg-stone-50 rounded-xl text-xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0"></div>
+                            <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-xl font-bold text-lg mt-2 shadow-xl active:scale-95 transition-all">Salvar</button>
                         </div>
 
                         <!-- Cronômetro -->
-                        <div id="mode-timer" class="hidden-force flex-col items-center flex-1 justify-between py-2">
-                            <div class="w-full text-left mb-4">
-                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">O que vai estudar?</label>
-                                <div id="timer-subjects-grid" class="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto custom-scrollbar pr-1"></div>
-                            </div>
-                            <div class="w-56 h-56 rounded-full border-[6px] border-rose-100 flex flex-col items-center justify-center bg-stone-50 shadow-inner mb-4 relative">
-                                <span id="timer-display" class="text-5xl font-black text-stone-800 font-mono tracking-tighter">00:00</span>
-                                <span class="text-[10px] font-bold text-stone-400 uppercase mt-2 tracking-widest">Em Foco</span>
-                                <div id="timer-dot" class="w-3 h-3 bg-rose-500 rounded-full absolute top-6 animate-pulse hidden-force"></div>
+                        <div id="mode-timer" class="hidden flex-col items-center flex-1 justify-between py-2">
+                            <div class="w-full text-left mb-2"><label class="text-xs font-bold text-stone-400 uppercase ml-1">Matéria</label><div id="timer-subjects-grid" class="grid grid-cols-2 gap-2 mt-1 max-h-32 overflow-y-auto custom-scrollbar"></div></div>
+                            <div class="w-48 h-48 rounded-full border-[6px] border-rose-100 flex flex-col items-center justify-center bg-stone-50 shadow-inner relative my-4">
+                                <span id="timer-display" class="text-4xl font-black text-stone-800 font-mono tracking-tighter">00:00</span>
+                                <div id="timer-dot" class="w-2 h-2 bg-rose-500 rounded-full absolute top-4 animate-pulse hidden"></div>
                             </div>
                             <div class="flex gap-3 w-full">
-                                <button onclick="toggleTimer()" id="btn-timer-toggle" class="flex-1 py-4 bg-stone-800 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-stone-900 transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Iniciar</button>
-                                <button onclick="resetTimer()" class="w-16 py-4 bg-stone-200 text-stone-500 rounded-2xl font-bold hover:bg-stone-300 transition-all flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></button>
+                                <button onclick="toggleTimer()" id="btn-timer-toggle" class="flex-1 py-3 bg-stone-800 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Iniciar</button>
+                                <button onclick="resetTimer()" class="w-14 py-3 bg-stone-200 text-stone-500 rounded-xl font-bold hover:bg-stone-300 transition-all flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></button>
                             </div>
-                            <button onclick="saveTimer()" id="btn-timer-save" disabled class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-xl mt-4 disabled:opacity-50 disabled:shadow-none transition-all">Salvar Estudo</button>
+                            <button onclick="saveTimer()" id="btn-timer-save" disabled class="w-full py-3 bg-rose-400 text-white rounded-xl font-bold mt-3 shadow-md disabled:opacity-50 disabled:shadow-none transition-all">Salvar</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 4. HISTÓRICO -->
-                <div id="view-history" class="space-y-4 hidden-force pb-10">
-                    <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
+                <div id="view-history" class="space-y-4 hidden pb-10">
+                    <div class="bg-white px-5 py-3 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
                         <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
-                        <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0 regs</span>
+                        <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0</span>
                     </div>
                     <div id="history-list" class="space-y-3 pb-20"></div>
                 </div>
             </main>
 
-            <!-- MENU INFERIOR -->
-            <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
-                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i><span class="text-[10px] transition-colors">Resumo</span></button>
-                <button onclick="switchView('subjects')" id="nav-subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-book text-xl mb-1 transition-colors"></i><span class="text-[10px] transition-colors">Matérias</span></button>
-                <button onclick="prepareLog()" class="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-10 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]"><i class="fa-solid fa-plus text-xl"></i></button>
-                <button onclick="switchView('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-list-ul text-xl mb-1 transition-colors"></i><span class="text-[10px] transition-colors">Histórico</span></button>
+            <!-- MENU INFERIOR (Z-Index Alto) -->
+            <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-[50]">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-14 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-chart-pie text-xl mb-1"></i><span class="text-[9px]">Resumo</span></button>
+                <button onclick="switchView('subjects')" id="nav-subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-14 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-book text-xl mb-1"></i><span class="text-[9px]">Matérias</span></button>
+                <button onclick="prepareLog()" class="bg-stone-800 text-white w-12 h-12 rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]"><i class="fa-solid fa-plus text-xl"></i></button>
+                <button onclick="switchView('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center p-2 w-14 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-list-ul text-xl mb-1"></i><span class="text-[9px]">Histórico</span></button>
                 <div class="w-2 opacity-0"></div>
             </nav>
 
         </div>
     </div>
 
-    <!-- LÓGICA JS -->
     <script>
-        // SEU PROJETO FIREBASE JÁ CONFIGURADO AQUI:
+        // 1. CONFIGURAÇÃO FIREBASE
         const firebaseConfig = {
           apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
           authDomain: "estudamim-e5b35.firebaseapp.com",
@@ -213,108 +209,63 @@
         };
 
         let auth, db, currentUser = null;
-        
+        let subjects = [], sessions = [], selectedColor = '#E88D93', selectedSubjectId = null;
+        let dashboardFilter = 'all', timerInterval = null, timerSeconds = 0, isTimerRunning = false;
+
+        const COLORS = ['#E88D93', '#3B7CA8', '#1E40AF', '#D4A373', '#8D6E63', '#5D4037', '#A8D5BA', '#5F6F52', '#93C5FD', '#C084FC', '#FCD34D', '#FCA5A5'];
+        const DEFAULT_SUBJECTS = [{ name: 'Língua Portuguesa', color: '#E88D93' }, { name: 'Raciocínio Lógico', color: '#3B7CA8' }, { name: 'Atualidades', color: '#FCD34D' }, { name: 'Informática', color: '#1E40AF' }, { name: 'Direito Administrativo', color: '#5D4037' }, { name: 'Direito Penal', color: '#5F6F52' }, { name: 'Direito Constitucional', color: '#D4A373' }, { name: 'Arquivologia', color: '#8D6E63' }, { name: 'Simulados', color: '#C084FC' }];
+
+        // 2. INICIALIZAÇÃO SEGURA
         try {
             firebase.initializeApp(firebaseConfig);
             auth = firebase.auth();
             db = firebase.firestore();
             
-            // MONITOR DE LOGIN
             auth.onAuthStateChanged((user) => {
                 const as = document.getElementById('auth-screen');
                 const ac = document.getElementById('app-content');
                 
                 if (user) {
-                    // Logado
                     currentUser = user;
-                    as.classList.add('hidden-force'); 
-                    ac.classList.remove('hidden-force'); 
-                    ac.classList.add('flex-force');
+                    as.classList.add('hidden');
+                    ac.classList.remove('hidden'); ac.classList.add('flex');
                     switchView('dashboard');
                     startListeners();
                 } else {
-                    // Deslogado
                     currentUser = null;
-                    as.classList.remove('hidden-force');
-                    ac.classList.add('hidden-force'); 
-                    ac.classList.remove('flex-force');
+                    as.classList.remove('hidden');
+                    ac.classList.add('hidden'); ac.classList.remove('flex');
                 }
             });
-        } catch (e) {
-            alert("Erro ao conectar Firebase: " + e.message);
-        }
+        } catch (e) { alert("Erro Firebase: " + e.message); }
 
-        // VARIÁVEIS
-        let subjects = [], sessions = [], selectedColor = '#E88D93', selectedSubjectId = null;
-        let dashboardFilter = 'all'; 
-        let timerInterval = null, timerSeconds = 0, isTimerRunning = false;
-
-        const COLORS = ['#E88D93', '#3B7CA8', '#1E40AF', '#D4A373', '#8D6E63', '#5D4037', '#A8D5BA', '#5F6F52', '#93C5FD', '#C084FC', '#FCD34D', '#FCA5A5'];
-        const DEFAULT_SUBJECTS = [
-            { name: 'Língua Portuguesa', color: '#E88D93' }, { name: 'Raciocínio Lógico', color: '#3B7CA8' }, { name: 'Atualidades', color: '#FCD34D' },
-            { name: 'Informática', color: '#1E40AF' }, { name: 'Direito Administrativo', color: '#5D4037' }, { name: 'Direito Penal', color: '#5F6F52' },
-            { name: 'Direito Constitucional', color: '#D4A373' }, { name: 'Arquivologia', color: '#8D6E63' }, { name: 'Simulados', color: '#C084FC' }
-        ];
-
-        // --- FUNÇÕES DE LOGIN ---
+        // 3. FUNÇÕES DO APP
         async function handleLogin() {
-            const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            const err = document.getElementById('auth-error');
-            const loader = document.getElementById('auth-loader');
-            const btnT = document.getElementById('btn-text');
-
-            if (!email || !pass) { 
-                err.innerText = "Preencha e-mail e senha!"; 
-                return; 
-            }
-            
-            err.innerText = ""; 
-            btnT.classList.add('hidden-force'); 
-            loader.classList.remove('hidden-force');
-
-            try { 
-                // 1. Tenta Login
-                await auth.signInWithEmailAndPassword(email, pass); 
-            } catch (e) {
-                // 2. Se der erro de "não encontrado", tenta criar
+            const email = document.getElementById('email').value, pass = document.getElementById('password').value;
+            const err = document.getElementById('auth-error'), l = document.getElementById('auth-loader'), b = document.getElementById('btn-text');
+            if (!email || !pass) { err.innerText = "Preencha tudo!"; return; }
+            err.innerText = ""; b.classList.add('hidden'); l.classList.remove('hidden');
+            try { await auth.signInWithEmailAndPassword(email, pass); } 
+            catch (e) {
                 if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'].includes(e.code)) {
                     try {
                         await auth.createUserWithEmailAndPassword(email, pass);
-                        // Criação bem sucedida, vamos popular os dados
-                        seedInitialData();
-                    } catch (e2) { 
-                        err.innerText = (e2.code==='auth/weak-password') ? "Senha fraca (min 6 dígitos)." : "Erro: " + e2.message;
-                    }
-                } else { 
-                    err.innerText = "Erro: " + e.message; 
-                }
+                        resetToConcurso(true);
+                    } catch (e2) { err.innerText = (e2.code==='auth/weak-password')?"Senha fraca (min 6).":"Erro criação."; }
+                } else { err.innerText = "Dados incorretos."; }
             }
-            
-            // Remove loading (Se entrou, o listener vai mudar a tela antes disso)
-            loader.classList.add('hidden-force'); 
-            btnT.classList.remove('hidden-force');
+            l.classList.add('hidden'); b.classList.remove('hidden');
         }
-
-        async function seedInitialData() {
-            if(!currentUser) return;
-            const batch = db.batch();
-            DEFAULT_SUBJECTS.forEach(s => {
-                const ref = db.collection('users').doc(currentUser.uid).collection('subjects').doc();
-                batch.set(ref, {name: s.name, color: s.color, createdAt: Date.now()});
-            });
-            try { await batch.commit(); } catch(e){ console.error("Erro ao criar dados iniciais", e); }
-        }
-
         function handleLogout() { auth.signOut(); }
 
-        // --- FUNÇÕES DO APP ---
         function startListeners() {
             db.collection('users').doc(currentUser.uid).collection('subjects').orderBy('createdAt', 'asc').onSnapshot(s => {
-                subjects = s.docs.map(d => ({id:d.id, ...d.data()})); renderAll();
+                subjects = s.docs.map(d => ({id:d.id, ...d.data()})); 
+                renderAll();
             });
             db.collection('users').doc(currentUser.uid).collection('sessions').orderBy('createdAt', 'desc').onSnapshot(s => {
-                sessions = s.docs.map(d => ({id:d.id, ...d.data()})); renderAll();
+                sessions = s.docs.map(d => ({id:d.id, ...d.data()})); 
+                renderAll();
             });
         }
         
@@ -322,25 +273,16 @@
 
         function switchView(v) { 
             ['dashboard', 'subjects', 'log', 'history'].forEach(x => {
-                document.getElementById(`view-${x}`).classList.add('hidden-force'); 
+                document.getElementById(`view-${x}`).classList.add('hidden'); 
                 document.getElementById(`nav-${x}`).classList.remove('active');
             }); 
-            document.getElementById(`view-${v}`).classList.remove('hidden-force'); 
+            document.getElementById(`view-${v}`).classList.remove('hidden'); 
             document.getElementById(`nav-${v}`).classList.add('active');
             if(v==='dashboard') renderDashboard(); 
         }
 
-        function setFilter(f) {
-            dashboardFilter = f;
-            document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('active', 'bg-stone-800', 'text-white'); b.classList.add('text-stone-400'); });
-            const btn = document.getElementById('filter-'+f);
-            if(btn) { btn.classList.add('active', 'bg-stone-800', 'text-white'); btn.classList.remove('text-stone-400'); }
-            renderDashboard();
-        }
-
         function renderDashboard() {
-            const now = new Date(); const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-            
+            const now = new Date(), todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
             let filtered = sessions.filter(s => {
                 if(!s.date) return false; const parts = s.date.split('-'); const sTime = new Date(parts[0], parts[1]-1, parts[2]).getTime();
                 if (dashboardFilter === 'day') return sTime === todayStart;
@@ -348,64 +290,79 @@
                 if (dashboardFilter === 'month') return new Date(sTime).getMonth() === now.getMonth();
                 return true;
             });
-
-            let total=0, counts={}; 
-            filtered.forEach(s=>{total+=s.duration; const sub=subjects.find(sb=>sb.id===s.subjectId); if(sub){ if(!counts[sub.name])counts[sub.name]={val:0,color:sub.color}; counts[sub.name].val+=s.duration;}});
+            let total=0, counts={}; filtered.forEach(s=>{total+=s.duration; const sub=subjects.find(sb=>sb.id===s.subjectId); if(sub){ if(!counts[sub.name])counts[sub.name]={val:0,color:sub.color}; counts[sub.name].val+=s.duration;}});
             
-            document.getElementById('total-hours').innerText=(total/60).toFixed(1); document.getElementById('total-sessions').innerText=filtered.length;
+            document.getElementById('total-hours').innerText=(total/60).toFixed(1); 
+            document.getElementById('total-sessions').innerText=filtered.length;
             let top='-', max=0; for(let k in counts)if(counts[k].val>max){max=counts[k].val; top=k;} document.getElementById('top-subject').innerText=top;
             
             const c=document.getElementById('chart-pie'), l=document.getElementById('chart-legend');
-            if(total===0){ c.style.background='#f3f4f6'; l.innerHTML='<span class="text-xs text-stone-400 italic">Sem dados neste período</span>'; return; }
-            let g=[], p=0; l.innerHTML=''; for(let k in counts){ const pc=(counts[k].val/total)*100; g.push(`${counts[k].color} ${p}% ${p+pc}%`); p+=pc; l.innerHTML+=`<div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm"><div class="w-3 h-3 rounded-full shadow-sm" style="background:${counts[k].color}"></div><span class="text-xs font-bold text-stone-600">${Math.round(pc)}%</span></div>`; } c.style.background=`conic-gradient(${g.join(', ')})`;
+            if(total===0) { 
+                c.style.background='#f3f4f6'; 
+                l.innerHTML='<div class="text-center text-stone-400 text-xs italic mt-2">Sem dados. <br>Adicione uma matéria e estude!</div>';
+            } else {
+                let g=[], p=0; l.innerHTML=''; 
+                for(let k in counts){ 
+                    const pc=(counts[k].val/total)*100; g.push(`${counts[k].color} ${p}% ${p+pc}%`); p+=pc; 
+                    l.innerHTML+=`<div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm mb-1"><div class="w-3 h-3 rounded-full" style="background:${counts[k].color}"></div><span class="text-xs font-bold text-stone-600">${Math.round(pc)}%</span></div>`; 
+                } 
+                c.style.background=`conic-gradient(${g.join(', ')})`;
+            }
+        }
+
+        function setFilter(f) {
+            dashboardFilter = f;
+            document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('active', 'bg-stone-800', 'text-white'); b.classList.add('text-stone-400'); });
+            const btn = document.getElementById('filter-'+f); if(btn) { btn.classList.add('active', 'bg-stone-800', 'text-white'); btn.classList.remove('text-stone-400'); }
+            renderDashboard();
         }
 
         function toggleLogMode(mode) {
-            document.getElementById('mode-manual').classList.toggle('hidden-force', mode !== 'manual');
-            document.getElementById('mode-timer').classList.toggle('hidden-force', mode !== 'timer');
+            document.getElementById('mode-manual').classList.toggle('hidden', mode !== 'manual');
+            document.getElementById('mode-timer').classList.toggle('hidden', mode !== 'timer');
             document.getElementById('mode-timer').style.display = mode === 'timer' ? 'flex' : 'none';
-            
-            const manBtn = document.getElementById('tab-manual'); const timBtn = document.getElementById('tab-timer');
-            if(mode === 'manual') {
-                manBtn.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-white shadow-sm text-stone-800 transition-all";
-                timBtn.className = "flex-1 py-3 rounded-xl text-sm font-bold text-stone-400 hover:text-stone-600 transition-all";
-            } else {
-                manBtn.className = "flex-1 py-3 rounded-xl text-sm font-bold text-stone-400 hover:text-stone-600 transition-all";
-                timBtn.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-white shadow-sm text-stone-800 transition-all";
-            }
+            const mB=document.getElementById('tab-manual'), tB=document.getElementById('tab-timer');
+            if(mode==='manual'){mB.className="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-stone-800 transition-all"; tB.className="flex-1 py-2 rounded-lg text-xs font-bold text-stone-400 hover:text-stone-600 transition-all";}
+            else{mB.className="flex-1 py-2 rounded-lg text-xs font-bold text-stone-400 hover:text-stone-600 transition-all"; tB.className="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-stone-800 transition-all";}
         }
         
         function prepareLog() { switchView('log'); toggleLogMode('manual'); document.getElementById('log-date').value = new Date().toISOString().split('T')[0]; document.getElementById('log-duration').value = ''; selectedSubjectId = null; renderSubjectsGrid(); renderTimerGrid(); }
-        function renderSubjectsGrid() { const g=document.getElementById('log-subjects-grid'); if(!subjects.length)return g.innerHTML='<p class="col-span-2 text-center text-xs text-rose-500 font-bold">Sem matérias</p>'; g.innerHTML=subjects.map(s => `<button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${s.color}"></span><span class="font-bold text-sm text-stone-600">${s.name}</span></button>`).join(''); }
-        function renderTimerGrid() { const g=document.getElementById('timer-subjects-grid'); if(!subjects.length)return g.innerHTML='<p class="col-span-2 text-center text-xs text-rose-500 font-bold">Sem matérias</p>'; g.innerHTML=subjects.map(s => `<button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-2 rounded-xl border-2 text-left bg-white border-stone-100 text-stone-500 w-full flex items-center gap-2 text-xs h-10"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${s.color}"></span><span class="font-bold truncate">${s.name}</span></button>`).join(''); }
+        
+        // RENDER GRID
+        function renderSubjectsGrid() { 
+            const g=document.getElementById('log-subjects-grid'); 
+            if(!subjects.length) return g.innerHTML='<div class="col-span-2 p-4 bg-rose-50 rounded-xl text-center text-rose-500 font-bold text-xs cursor-pointer" onclick="switchView(\'subjects\')">Nenhuma matéria!<br>Clique aqui para criar.</div>';
+            g.innerHTML=subjects.map(s => `<button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${s.color}"></span><span class="font-bold text-sm text-stone-600">${s.name}</span></button>`).join(''); 
+        }
+        function renderTimerGrid() { 
+            const g=document.getElementById('timer-subjects-grid'); 
+            if(!subjects.length) return g.innerHTML='<div class="col-span-2 text-center text-xs text-stone-400">Crie matérias primeiro.</div>';
+            g.innerHTML=subjects.map(s => `<button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-2 rounded-xl border-2 text-left bg-white border-stone-100 text-stone-500 w-full flex items-center gap-2 text-xs h-10"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${s.color}"></span><span class="font-bold truncate">${s.name}</span></button>`).join(''); 
+        }
         function selectLogSubject(id, btn) { selectedSubjectId = id; document.querySelectorAll('.sub-grid-btn').forEach(b => b.className='sub-grid-btn p-2 md:p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2'); if(btn) btn.className='sub-grid-btn p-2 md:p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 w-full flex items-center gap-2'; }
 
-        function toggleTimer() { const btn = document.getElementById('btn-timer-toggle'); if(isTimerRunning) { clearInterval(timerInterval); isTimerRunning=false; btn.innerHTML='<i class="fa-solid fa-play"></i> Continuar'; btn.className="flex-1 py-4 bg-sky-600 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-sky-700 transition-all flex items-center justify-center gap-2"; document.getElementById('timer-dot').classList.add('hidden-force'); if(timerSeconds>0) document.getElementById('btn-timer-save').disabled=false; } else { if(!selectedSubjectId) return alert("Escolha a matéria!"); isTimerRunning=true; document.getElementById('btn-timer-save').disabled=true; timerInterval = setInterval(()=>{ timerSeconds++; const h=Math.floor(timerSeconds/3600), m=Math.floor((timerSeconds%3600)/60), s=timerSeconds%60; document.getElementById('timer-display').innerText = `${h>0?h+':':''}${m<10?'0'+m:m}:${s<10?'0'+s:s}`; }, 1000); btn.innerHTML='<i class="fa-solid fa-pause"></i> Pausar'; btn.className="flex-1 py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-rose-500 transition-all flex items-center justify-center gap-2"; document.getElementById('timer-dot').classList.remove('hidden-force'); } }
-        function resetTimer() { if(isTimerRunning) toggleTimer(); timerSeconds=0; document.getElementById('timer-display').innerText="00:00"; document.getElementById('btn-timer-toggle').innerHTML='<i class="fa-solid fa-play"></i> Iniciar'; document.getElementById('btn-timer-toggle').className="flex-1 py-4 bg-stone-800 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-stone-900 transition-all flex items-center justify-center gap-2"; document.getElementById('btn-timer-save').disabled=true; }
+        // TIMER
+        function toggleTimer() { const btn = document.getElementById('btn-timer-toggle'); if(isTimerRunning) { clearInterval(timerInterval); isTimerRunning=false; btn.innerHTML='<i class="fa-solid fa-play"></i>'; btn.className="flex-1 py-4 bg-sky-600 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-sky-700 transition-all flex items-center justify-center gap-2"; document.getElementById('timer-dot').classList.add('hidden'); if(timerSeconds>0) document.getElementById('btn-timer-save').disabled=false; } else { if(!selectedSubjectId) return alert("Escolha a matéria!"); isTimerRunning=true; document.getElementById('btn-timer-save').disabled=true; timerInterval = setInterval(()=>{ timerSeconds++; const h=Math.floor(timerSeconds/3600), m=Math.floor((timerSeconds%3600)/60), s=timerSeconds%60; document.getElementById('timer-display').innerText = `${h>0?h+':':''}${m<10?'0'+m:m}:${s<10?'0'+s:s}`; }, 1000); btn.innerHTML='<i class="fa-solid fa-pause"></i>'; btn.className="flex-1 py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-rose-500 transition-all flex items-center justify-center gap-2"; document.getElementById('timer-dot').classList.remove('hidden'); } }
+        function resetTimer() { if(isTimerRunning) toggleTimer(); timerSeconds=0; document.getElementById('timer-display').innerText="00:00"; document.getElementById('btn-timer-save').disabled=true; }
         async function saveTimer() { if(!selectedSubjectId) return alert("Matéria?"); const m=Math.ceil(timerSeconds/60); if(m===0)return alert("Pouco tempo!"); try{await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId:selectedSubjectId,date:new Date().toISOString().split('T')[0],duration:m,createdAt:Date.now()}); resetTimer(); switchView('dashboard'); setFilter('day');}catch(e){alert(e.message);} }
 
-        function renderHistory() { document.getElementById('history-count').innerText = `${sessions.length} regs`; document.getElementById('history-list').innerHTML = sessions.length ? sessions.map(s => { const sub = subjects.find(sb=>sb.id===s.subjectId)||{name:'Arquivado',color:'#ccc'}; return `<div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center"><div class="flex gap-3 items-center"><div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div><div><h4 class="font-bold text-stone-700">${sub.name}</h4><p class="text-xs text-stone-400 mt-1">${s.date.split('-').reverse().join('/')}</p></div></div><div class="text-right"><span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span><button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold uppercase mt-1">Excluir</button></div></div>`; }).join('') : '<p class="text-center text-stone-300 mt-10 italic">Vazio</p>'; }
-        function renderSubjects() {
-            document.getElementById('subjects-list').innerHTML = subjects.map(s => `<div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div><span class="font-bold text-stone-700 text-lg">${s.name}</span></div><button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button></div>`).join('');
-            document.getElementById('color-picker').innerHTML = COLORS.map(c => `<button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c?'border-stone-800 scale-110 shadow-md':'border-transparent'}" style="background-color:${c}"></button>`).join('');
-        }
+        // AÇÕES
+        function renderHistory() { document.getElementById('history-count').innerText = `${sessions.length}`; document.getElementById('history-list').innerHTML = sessions.length ? sessions.map(s => { const sub = subjects.find(sb=>sb.id===s.subjectId)||{name:'Arquivado',color:'#ccc'}; return `<div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center"><div class="flex gap-3 items-center"><div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div><div><h4 class="font-bold text-stone-700">${sub.name}</h4><p class="text-xs text-stone-400 mt-1">${s.date.split('-').reverse().join('/')}</p></div></div><div class="text-right"><span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span><button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold uppercase mt-1">Excluir</button></div></div>`; }).join('') : '<p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>'; }
+        function renderSubjects() { document.getElementById('subjects-list').innerHTML = subjects.map(s => `<div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div><span class="font-bold text-stone-700 text-lg">${s.name}</span></div><button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button></div>`).join(''); document.getElementById('color-picker').innerHTML = COLORS.map(c => `<button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c?'border-stone-800 scale-110 shadow-md':'border-transparent'}" style="background-color:${c}"></button>`).join(''); }
         
-        async function resetToConcurso() {
-            if(!confirm("Isso apagará TODAS as matérias atuais e restaurará o padrão. Continuar?")) return;
+        async function resetToConcurso(silent=false) {
+            if(!silent && !confirm("Restaurar padrão de Concurso? Isso apaga as matérias atuais.")) return;
             try {
-                const snapshot = await db.collection('users').doc(currentUser.uid).collection('subjects').get();
-                const batchDel = db.batch();
-                snapshot.docs.forEach(doc => batchDel.delete(doc.ref));
-                await batchDel.commit();
-
-                const batchAdd = db.batch();
+                const snap = await db.collection('users').doc(currentUser.uid).collection('subjects').get();
+                const batch = db.batch();
+                snap.docs.forEach(doc => batch.delete(doc.ref));
                 DEFAULT_SUBJECTS.forEach(s => {
                     const newRef = db.collection('users').doc(currentUser.uid).collection('subjects').doc();
-                    batchAdd.set(newRef, {name: s.name, color: s.color, createdAt: Date.now()});
+                    batch.set(newRef, {name: s.name, color: s.color, createdAt: Date.now()});
                 });
-                await batchAdd.commit();
-                alert("Restaurado!");
-            } catch(e) { alert("Erro: " + e.message); }
+                await batch.commit();
+                if(!silent) { alert("Restaurado!"); switchView('subjects'); }
+            } catch(e) { if(!silent) alert(e.message); }
         }
 
         async function addSubject() { const n=document.getElementById('sub-name'); if(!n.value)return alert("Nome?"); try{await db.collection('users').doc(currentUser.uid).collection('subjects').add({name:n.value,color:selectedColor,createdAt:Date.now()}); n.value=''; alert("Criado!");}catch(e){alert(e.message);} }
