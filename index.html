@@ -5,43 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EstudaMim</title>
     
-    <!-- 1. CARREGANDO O DESIGN (Tailwind CSS) -->
+    <!-- 1. Design (Tailwind CSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 2. FONTES E ÍCONES -->
+    <!-- 2. Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- 3. FIREBASE (Banco de Dados) -->
+    <!-- 3. Firebase (Banco de Dados) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* Estilos Personalizados para ficar igual ao original */
+        /* --- ESTILOS VISUAIS --- */
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Lato', sans-serif; }
         body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; }
         
-        /* Utilitários */
+        /* Utilitários Críticos */
         .hidden { display: none !important; }
-        .flex { display: flex !important; }
         
-        /* Scrollbar bonita */
+        /* Scrollbar Personalizada (Rosa) */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
         
-        /* Animações */
-        @keyframes fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-up { animation: fade-up 0.4s ease-out forwards; }
+        /* Animações Suaves */
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fade-in 0.4s ease-out forwards; }
         
+        /* Loader */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Botão Ativo na Navegação */
-        .nav-btn.active i { color: #E88D93; } /* rose-400 */
-        .nav-btn.active span { color: #E88D93; font-weight: bold; }
-        .nav-btn.active { background-color: #FFF1F2; } /* rose-50 */
+        /* Botão de Navegação Ativo */
+        .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
+        .nav-btn.active i { color: #E88D93; }
     </style>
 </head>
 <body class="font-sans text-stone-800 h-screen flex justify-center bg-stone-100">
@@ -51,19 +50,17 @@
         <!-- ========================== -->
         <!--      TELA DE LOGIN         -->
         <!-- ========================== -->
-        <div id="auth-screen" class="absolute inset-0 z-50 bg-[#FDFBF7] flex flex-col items-center justify-center p-8 animate-fade-up">
-            <div class="w-28 h-28 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-6xl mb-6">🐶</div>
+        <div id="auth-screen" class="absolute inset-0 z-50 bg-[#FDFBF7] flex flex-col items-center justify-center p-8 animate-fade">
+            <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
             <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
-            <p class="text-stone-400 text-sm mb-10 text-center font-medium">Seus estudos, organizados e na nuvem.</p>
+            <p class="text-stone-400 text-sm mb-10 text-center font-medium">Seus estudos salvos na nuvem.</p>
 
             <div class="w-full space-y-4">
                 <div>
-                    <label class="text-xs font-bold text-stone-400 ml-2 uppercase">E-mail</label>
-                    <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all" placeholder="exemplo@email.com">
+                    <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all placeholder-stone-300" placeholder="Seu e-mail">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-stone-400 ml-2 uppercase">Senha</label>
-                    <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all" placeholder="******">
+                    <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all placeholder-stone-300" placeholder="Sua senha">
                 </div>
                 
                 <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
@@ -85,42 +82,37 @@
                     <h1 class="text-3xl font-serif font-black text-stone-800 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
                     <p class="text-stone-400 text-xs mt-1">Olá, estudante!</p>
                 </div>
-                <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-stone-100 text-stone-400 hover:bg-rose-100 hover:text-rose-500 transition-colors flex items-center justify-center">
-                    <i class="fa-solid fa-right-from-bracket"></i>
+                <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-stone-50 text-stone-400 hover:bg-rose-100 hover:text-rose-500 transition-colors flex items-center justify-center border border-stone-100">
+                    <i class="fa-solid fa-power-off"></i>
                 </button>
             </header>
 
-            <!-- Área de Scroll -->
+            <!-- Conteúdo com Scroll -->
             <main class="flex-1 overflow-y-auto p-6 pb-28 custom-scrollbar">
                 
-                <!-- VIEW: DASHBOARD (Resumo) -->
-                <div id="view-dashboard" class="space-y-6 animate-fade-up">
+                <!-- VIEW: DASHBOARD -->
+                <div id="view-dashboard" class="space-y-6 animate-fade">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
-                        <h2 class="font-bold text-stone-700 mb-4 text-lg">Tempo de Foco</h2>
+                        <h2 class="font-bold text-stone-700 mb-4 text-lg border-l-4 border-rose-300 pl-3">Resumo Geral</h2>
                         
-                        <!-- Gráfico Pizza Bonito -->
-                        <div class="h-64 flex items-center justify-center relative">
+                        <!-- Gráfico -->
+                        <div class="h-64 flex items-center justify-center relative my-4">
                             <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #eee; position: relative; transition: background 0.5s;"></div>
-                            <!-- Donut hole -->
                             <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
                                 <span id="total-hours" class="text-4xl font-black text-stone-800 font-serif">0.0</span>
                                 <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
                             </div>
                         </div>
                         
-                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6">
-                            <!-- Legenda injetada via JS -->
-                        </div>
+                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6"></div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-rose-50 p-5 rounded-3xl text-rose-800 border border-rose-100 shadow-sm">
-                            <i class="fa-solid fa-star mb-2 opacity-50 text-xl"></i>
                             <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Maior Foco</p>
                             <p id="top-subject" class="font-bold text-lg leading-tight mt-1">-</p>
                         </div>
                         <div class="bg-sky-50 p-5 rounded-3xl text-sky-800 border border-sky-100 shadow-sm">
-                            <i class="fa-solid fa-check-circle mb-2 opacity-50 text-xl"></i>
                             <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Sessões</p>
                             <p id="total-sessions" class="font-bold text-lg mt-1">0</p>
                         </div>
@@ -128,31 +120,27 @@
                 </div>
 
                 <!-- VIEW: MATÉRIAS -->
-                <div id="view-subjects" class="space-y-6 hidden animate-fade-up">
+                <div id="view-subjects" class="space-y-6 hidden animate-fade">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
-                        <h2 class="font-bold text-stone-800 text-lg mb-4">Adicionar Matéria</h2>
+                        <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Matéria</h2>
                         <input id="sub-name" class="w-full p-4 bg-stone-50 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Nome da disciplina...">
                         
-                        <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Escolha a cor</div>
-                        <div id="color-picker" class="flex gap-3 mb-6 overflow-x-auto pb-2 px-1">
-                            <!-- Cores injetadas via JS -->
-                        </div>
+                        <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Cor</div>
+                        <div id="color-picker" class="flex gap-3 mb-6 overflow-x-auto pb-2 px-1"></div>
                         
                         <button onclick="addSubject()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all">
-                            Criar Disciplina
+                            Adicionar
                         </button>
                     </div>
 
                     <div class="pl-2">
                         <h3 class="text-xs font-bold text-stone-400 uppercase mb-3">Suas Matérias</h3>
-                        <div id="subjects-list" class="space-y-3">
-                            <!-- Lista injetada via JS -->
-                        </div>
+                        <div id="subjects-list" class="space-y-3"></div>
                     </div>
                 </div>
 
-                <!-- VIEW: REGISTRO (Log) -->
-                <div id="view-log" class="hidden h-full flex flex-col animate-fade-up">
+                <!-- VIEW: REGISTRO (LOG) -->
+                <div id="view-log" class="hidden h-full flex flex-col animate-fade">
                     <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
                         <h2 class="text-center font-serif font-bold text-2xl mb-8 text-stone-800">Registrar Estudo</h2>
                         
@@ -164,9 +152,7 @@
                             
                             <div>
                                 <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
-                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                                    <!-- Botões de matéria injetados via JS -->
-                                </div>
+                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
                             </div>
                             
                             <div>
@@ -185,20 +171,18 @@
                 </div>
 
                 <!-- VIEW: HISTÓRICO -->
-                <div id="view-history" class="space-y-4 hidden animate-fade-up">
+                <div id="view-history" class="space-y-4 hidden animate-fade">
                     <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
-                        <h2 class="font-bold text-stone-800 text-lg">Histórico</h2>
+                        <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
                         <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0 regs</span>
                     </div>
-                    <div id="history-list" class="space-y-3 pb-20">
-                        <!-- Histórico injetado via JS -->
-                    </div>
+                    <div id="history-list" class="space-y-3 pb-20"></div>
                 </div>
 
             </main>
 
-            <!-- Barra de Navegação Flutuante -->
-            <nav class="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
+            <!-- Navegação Inferior -->
+            <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
                 <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
                     <i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i>
                     <span class="text-[10px] transition-colors">Resumo</span>
@@ -209,7 +193,6 @@
                     <span class="text-[10px] transition-colors">Matérias</span>
                 </button>
                 
-                <!-- Botão Central Flutuante -->
                 <button onclick="prepareLog()" class="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-10 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]">
                     <i class="fa-solid fa-plus text-xl"></i>
                 </button>
@@ -219,8 +202,7 @@
                     <span class="text-[10px] transition-colors">Histórico</span>
                 </button>
                 
-                <!-- Espaçador Fake -->
-                <div class="w-2 opacity-0"></div>
+                <div class="w-2 opacity-0"></div> <!-- Espaçador -->
             </nav>
 
         </div>
@@ -230,7 +212,7 @@
     <!--     LÓGICA JAVASCRIPT      -->
     <!-- ========================== -->
     <script>
-        // CONFIGURAÇÃO DO FIREBASE (Sua Chave Já Inclusa)
+        // --- 1. CONFIGURAÇÃO (Já incluída) ---
         const firebaseConfig = {
           apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
           authDomain: "estudamim-e5b35.firebaseapp.com",
@@ -240,7 +222,7 @@
           appId: "1:593504107114:web:0ff19a1fb6938da0d3e813"
         };
 
-        // Inicialização Segura
+        // --- 2. INICIALIZAÇÃO ---
         let auth, db, currentUser = null;
         try {
             firebase.initializeApp(firebaseConfig);
@@ -248,28 +230,26 @@
             db = firebase.firestore();
         } catch (e) {
             console.error("Erro Firebase:", e);
-            alert("Erro ao iniciar o App. Verifique a conexão.");
+            alert("Erro de conexão. Recarregue a página.");
         }
 
-        // Variáveis de Estado
+        // --- 3. VARIÁVEIS DE ESTADO ---
         let subjects = [];
         let sessions = [];
-        let selectedColor = '#E88D93'; // Cor padrão (Rosa Nariz)
+        let selectedColor = '#E88D93';
         let selectedSubjectId = null;
         const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
 
-        // --- SISTEMA DE LOGIN INTELIGENTE ---
+        // --- 4. SISTEMA DE LOGIN (Autenticação) ---
         if(auth) {
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    // Usuário Logado
                     currentUser = user;
                     document.getElementById('auth-screen').classList.add('hidden');
                     document.getElementById('app-content').classList.remove('hidden');
                     document.getElementById('app-content').classList.add('flex');
                     startListeners();
                 } else {
-                    // Usuário Saiu
                     currentUser = null;
                     document.getElementById('auth-screen').classList.remove('hidden');
                     document.getElementById('app-content').classList.add('hidden');
@@ -285,10 +265,7 @@
             const loader = document.getElementById('auth-loader');
             const btnText = document.getElementById('btn-text');
 
-            if (!email || !pass) {
-                errorMsg.innerText = "Por favor, digite e-mail e senha.";
-                return;
-            }
+            if (!email || !pass) { errorMsg.innerText = "Preencha tudo!"; return; }
             
             errorMsg.innerText = "";
             btnText.classList.add('hidden');
@@ -297,24 +274,17 @@
             try {
                 await auth.signInWithEmailAndPassword(email, pass);
             } catch (error) {
-                // Se falhar login, tenta criar conta
+                // Tenta criar conta se der erro de login
                 const loginErrors = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
-                
                 if (loginErrors.includes(error.code)) {
                     try {
                         await auth.createUserWithEmailAndPassword(email, pass);
-                        // Cria matéria padrão
+                        // Cria matéria inicial
                         await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({
                             name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()
                         });
                     } catch (createError) {
-                        if (createError.code === 'auth/weak-password') {
-                            errorMsg.innerText = "A senha deve ter no mínimo 6 caracteres.";
-                        } else if (createError.code === 'auth/email-already-in-use') {
-                            errorMsg.innerText = "Senha incorreta para este e-mail.";
-                        } else {
-                            errorMsg.innerText = "Erro: " + createError.message;
-                        }
+                        errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
                     }
                 } else {
                     errorMsg.innerText = "Erro: " + error.message;
@@ -326,95 +296,96 @@
 
         function handleLogout() { auth.signOut(); }
 
-        // --- BANCO DE DADOS EM TEMPO REAL ---
+        // --- 5. BANCO DE DADOS (Real-time) ---
         function startListeners() {
-            // Ouvir Matérias
+            // Matérias
             db.collection('users').doc(currentUser.uid).collection('subjects')
               .orderBy('createdAt', 'asc')
               .onSnapshot(snap => {
                   subjects = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                  renderSubjects();
-                  renderDashboard();
-                  renderSubjectsGrid(); // Atualiza grid no log
+                  renderSubjects(); renderSubjectsGrid(); renderDashboard();
               });
 
-            // Ouvir Sessões
+            // Histórico
             db.collection('users').doc(currentUser.uid).collection('sessions')
               .orderBy('createdAt', 'desc')
               .onSnapshot(snap => {
                   sessions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                  renderHistory();
-                  renderDashboard();
+                  renderHistory(); renderDashboard();
               });
         }
 
-        // --- NAVEGAÇÃO ENTRE TELAS ---
+        // --- 6. NAVEGAÇÃO ---
         function switchView(viewName) {
-            // Esconde todas
             ['dashboard', 'subjects', 'log', 'history'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.add('hidden');
-                const btn = document.getElementById(`nav-${v}`);
-                if(btn) btn.classList.remove('active');
+                document.getElementById(`nav-${v}`).classList.remove('active');
             });
-            
-            // Mostra a desejada
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`nav-${viewName}`);
-            if(activeBtn) activeBtn.classList.add('active');
-            
-            // Re-renderiza dashboard se necessário para animar gráfico
+            const navBtn = document.getElementById(`nav-${viewName}`);
+            if(navBtn) navBtn.classList.add('active');
             if(viewName === 'dashboard') renderDashboard();
         }
 
-        // --- RENDERIZAÇÃO VISUAL ---
-
+        // --- 7. RENDERIZAÇÃO (Desenhar na tela) ---
+        
+        // Tela de Matérias
         function renderSubjects() {
             const list = document.getElementById('subjects-list');
             const picker = document.getElementById('color-picker');
             
-            // Lista de Matérias
             list.innerHTML = subjects.map(s => `
                 <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">
-                            ${s.name.charAt(0).toUpperCase()}
-                        </div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
                         <span class="font-bold text-stone-700 text-lg">${s.name}</span>
                     </div>
-                    <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                    <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
 
-            // Seletor de Cores
             picker.innerHTML = COLORS.map(c => `
-                <button onclick="selectColor(this, '${c}')" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c ? 'border-stone-800 scale-110 shadow-md' : 'border-transparent'}" style="background-color:${c}"></button>
+                <button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c ? 'border-stone-800 scale-110 shadow-md' : 'border-transparent'}" style="background-color:${c}"></button>
             `).join('');
         }
 
-        function selectColor(btn, color) {
-            selectedColor = color;
-            document.querySelectorAll('.color-btn').forEach(b => {
-                b.classList.remove('border-stone-800', 'scale-110', 'shadow-md');
-                b.classList.add('border-transparent');
-            });
-            btn.classList.remove('border-transparent');
-            btn.classList.add('border-stone-800', 'scale-110', 'shadow-md');
+        // Tela de Registro (Grid de Matérias)
+        function prepareLog() {
+            switchView('log');
+            document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('log-duration').value = '';
+            selectedSubjectId = null;
+            renderSubjectsGrid();
         }
 
+        function renderSubjectsGrid() {
+            const grid = document.getElementById('log-subjects-grid');
+            if(subjects.length === 0) {
+                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>';
+                return;
+            }
+            grid.innerHTML = subjects.map(s => `
+                <button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 hover:opacity-100 transition-all w-full flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full" style="background:${s.color}"></span>
+                    <span class="font-bold text-sm text-stone-600">${s.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectLogSubject(id, btn) {
+            selectedSubjectId = id;
+            document.querySelectorAll('.sub-grid-btn').forEach(b => {
+                b.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 transition-all w-full flex items-center gap-2';
+            });
+            btn.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 transition-all w-full flex items-center gap-2';
+        }
+
+        // Tela de Histórico
         function renderHistory() {
             const list = document.getElementById('history-list');
             document.getElementById('history-count').innerText = `${sessions.length} regs`;
-
-            if(sessions.length === 0) {
-                list.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-10 text-stone-300">
-                        <i class="fa-regular fa-calendar-xmark text-4xl mb-2"></i>
-                        <p>Histórico vazio</p>
-                    </div>`;
-                return;
-            }
+            
+            if(sessions.length === 0) { list.innerHTML = '<p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>'; return; }
             
             list.innerHTML = sessions.map(s => {
                 const sub = subjects.find(sb => sb.id === s.subjectId) || {name: 'Arquivado', color: '#ccc'};
@@ -423,10 +394,8 @@
                         <div class="flex gap-3 items-center">
                             <div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div>
                             <div>
-                                <h4 class="font-bold text-stone-700 leading-tight">${sub.name}</h4>
-                                <p class="text-xs text-stone-400 mt-1 flex items-center gap-1">
-                                    <i class="fa-regular fa-calendar"></i> ${s.date.split('-').reverse().join('/')}
-                                </p>
+                                <h4 class="font-bold text-stone-700">${sub.name}</h4>
+                                <p class="text-xs text-stone-400 mt-1"><i class="fa-regular fa-calendar"></i> ${s.date.split('-').reverse().join('/')}</p>
                             </div>
                         </div>
                         <div class="text-right">
@@ -438,10 +407,9 @@
             }).join('');
         }
 
+        // Dashboard (Gráfico)
         function renderDashboard() {
-            let total = 0;
-            let counts = {};
-            
+            let total = 0, counts = {};
             sessions.forEach(s => {
                 total += s.duration;
                 const sub = subjects.find(sb => sb.id === s.subjectId);
@@ -451,31 +419,26 @@
                 }
             });
 
-            // Atualiza Top Stats
             document.getElementById('total-hours').innerText = (total/60).toFixed(1);
             document.getElementById('total-sessions').innerText = sessions.length;
             
-            let topName = '-';
-            let maxVal = 0;
-            for(let k in counts) {
-                if(counts[k].val > maxVal) { maxVal = counts[k].val; topName = k; }
-            }
-            document.getElementById('top-subject').innerText = topName;
+            // Top Matéria
+            let top = '-', max = 0;
+            for(let k in counts) if(counts[k].val > max) { max = counts[k].val; top = k; }
+            document.getElementById('top-subject').innerText = top;
 
-            // Gráfico Pizza (Conic Gradient)
+            // Gráfico CSS
             const chart = document.getElementById('chart-pie');
             const legend = document.getElementById('chart-legend');
             
             if(total === 0) {
                 chart.style.background = '#f3f4f6';
-                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados registrados</span>';
+                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados</span>';
                 return;
             }
 
-            let grad = [];
-            let pos = 0;
+            let grad = [], pos = 0;
             legend.innerHTML = '';
-            
             for(let k in counts) {
                 const p = (counts[k].val / total) * 100;
                 grad.push(`${counts[k].color} ${pos}% ${pos + p}%`);
@@ -489,84 +452,31 @@
             chart.style.background = `conic-gradient(${grad.join(', ')})`;
         }
 
-        // --- LÓGICA DO REGISTRO (LOG) ---
-
-        function prepareLog() {
-            switchView('log');
-            document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('log-duration').value = '';
-            selectedSubjectId = null;
-            renderSubjectsGrid();
-        }
-
-        function renderSubjectsGrid() {
-            const grid = document.getElementById('log-subjects-grid');
-            if(subjects.length === 0) {
-                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Adicione matérias primeiro!</p>';
-                return;
-            }
-            grid.innerHTML = subjects.map(s => `
-                <button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent hover:bg-white transition-all group relative overflow-hidden">
-                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative z-10 flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full" style="background:${s.color}"></span>
-                        <span class="font-bold text-sm text-stone-600 group-hover:text-stone-800">${s.name}</span>
-                    </div>
-                </button>
-            `).join('');
-        }
-
-        function selectLogSubject(id, btn) {
-            selectedSubjectId = id;
-            document.querySelectorAll('.sub-grid-btn').forEach(b => {
-                b.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60';
-            });
-            btn.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105';
-        }
-
-        // --- AÇÕES DO BANCO DE DADOS (ADD/DEL) ---
-
+        // --- 8. AÇÕES (Salvar/Deletar) ---
         async function addSubject() {
-            const nameInput = document.getElementById('sub-name');
-            const name = nameInput.value;
-            if(!name) { alert("Digite o nome da matéria!"); return; }
-            
+            const nameIn = document.getElementById('sub-name');
+            if(!nameIn.value) return alert("Digite o nome!");
             try {
-                await db.collection('users').doc(currentUser.uid).collection('subjects').add({
-                    name: name, color: selectedColor, createdAt: Date.now()
-                });
-                nameInput.value = '';
-                alert("Matéria criada com sucesso!");
-            } catch(e) { alert("Erro ao criar: " + e.message); }
+                await db.collection('users').doc(currentUser.uid).collection('subjects').add({name: nameIn.value, color: selectedColor, createdAt: Date.now()});
+                nameIn.value = '';
+                alert("Matéria criada!");
+            } catch(e) { alert("Erro: " + e.message); }
         }
 
         async function saveSession() {
             const date = document.getElementById('log-date').value;
             const dur = document.getElementById('log-duration').value;
-            
-            if(!selectedSubjectId) { alert("Selecione qual matéria você estudou!"); return; }
-            if(!dur) { alert("Digite quantos minutos estudou!"); return; }
-
+            if(!selectedSubjectId) return alert("Escolha a matéria!");
+            if(!dur) return alert("Digite o tempo!");
             try {
-                await db.collection('users').doc(currentUser.uid).collection('sessions').add({
-                    subjectId: selectedSubjectId, date: date, duration: parseInt(dur), createdAt: Date.now()
-                });
+                await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId: selectedSubjectId, date: date, duration: parseInt(dur), createdAt: Date.now()});
                 switchView('dashboard');
-            } catch(e) { alert("Erro ao salvar: " + e.message); }
+            } catch(e) { alert("Erro: " + e.message); }
         }
 
-        async function deleteSubject(id) {
-            if(confirm('Tem certeza que quer apagar esta matéria?')) {
-                await db.collection('users').doc(currentUser.uid).collection('subjects').doc(id).delete();
-            }
-        }
-
-        async function deleteSession(id) {
-            if(confirm('Apagar este registro do histórico?')) {
-                await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete();
-            }
-        }
+        async function deleteSubject(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('subjects').doc(id).delete(); }
+        async function deleteSession(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete(); }
 
     </script>
 </body>
-                                    </html>
+</html>
