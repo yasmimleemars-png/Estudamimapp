@@ -23,24 +23,20 @@
         .font-sans { font-family: 'Lato', sans-serif; }
         body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; }
         
-        /* Utilitários Críticos */
+        /* Ocultar elementos (IMPORTANTE: display none real) */
         .hidden { display: none !important; }
         
-        /* Scrollbar Personalizada (Rosa) */
+        /* Scrollbar Personalizada */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
         
-        /* Animações Suaves */
-        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade { animation: fade-in 0.4s ease-out forwards; }
+        /* Botão de Navegação Ativo */
+        .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
+        .nav-btn.active i { color: #E88D93; }
         
         /* Loader */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Botão de Navegação Ativo */
-        .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
-        .nav-btn.active i { color: #E88D93; }
     </style>
 </head>
 <body class="font-sans text-stone-800 h-screen flex justify-center bg-stone-100">
@@ -50,18 +46,14 @@
         <!-- ========================== -->
         <!--      TELA DE LOGIN         -->
         <!-- ========================== -->
-        <div id="auth-screen" class="absolute inset-0 z-50 bg-[#FDFBF7] flex flex-col items-center justify-center p-8 animate-fade">
+        <div id="auth-screen" class="absolute inset-0 z-[100] bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
             <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
             <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
             <p class="text-stone-400 text-sm mb-10 text-center font-medium">Seus estudos salvos na nuvem.</p>
 
             <div class="w-full space-y-4">
-                <div>
-                    <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all placeholder-stone-300" placeholder="Seu e-mail">
-                </div>
-                <div>
-                    <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700 transition-all placeholder-stone-300" placeholder="Sua senha">
-                </div>
+                <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Seu e-mail">
+                <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Sua senha">
                 
                 <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
                     <span id="btn-text">Entrar / Criar Conta</span>
@@ -74,7 +66,7 @@
         <!-- ========================== -->
         <!--      APP PRINCIPAL         -->
         <!-- ========================== -->
-        <div id="app-content" class="hidden flex-col h-full">
+        <div id="app-content" class="hidden flex-col h-full absolute inset-0 z-10 bg-[#FDFBF7]">
             
             <!-- Header -->
             <header class="px-6 pt-10 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 flex justify-between items-center shrink-0">
@@ -90,21 +82,23 @@
             <!-- Conteúdo com Scroll -->
             <main class="flex-1 overflow-y-auto p-6 pb-28 custom-scrollbar">
                 
-                <!-- VIEW: DASHBOARD -->
-                <div id="view-dashboard" class="space-y-6 animate-fade">
+                <!-- VIEW: DASHBOARD (PADRÃO) -->
+                <div id="view-dashboard" class="space-y-6">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
                         <h2 class="font-bold text-stone-700 mb-4 text-lg border-l-4 border-rose-300 pl-3">Resumo Geral</h2>
                         
                         <!-- Gráfico -->
                         <div class="h-64 flex items-center justify-center relative my-4">
-                            <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #eee; position: relative; transition: background 0.5s;"></div>
+                            <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #f3f4f6; position: relative;"></div>
                             <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
                                 <span id="total-hours" class="text-4xl font-black text-stone-800 font-serif">0.0</span>
                                 <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
                             </div>
                         </div>
                         
-                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6"></div>
+                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6">
+                            <span class="text-xs text-stone-400 italic">Adicione matérias para começar</span>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -120,7 +114,7 @@
                 </div>
 
                 <!-- VIEW: MATÉRIAS -->
-                <div id="view-subjects" class="space-y-6 hidden animate-fade">
+                <div id="view-subjects" class="space-y-6 hidden">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
                         <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Matéria</h2>
                         <input id="sub-name" class="w-full p-4 bg-stone-50 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Nome da disciplina...">
@@ -135,12 +129,14 @@
 
                     <div class="pl-2">
                         <h3 class="text-xs font-bold text-stone-400 uppercase mb-3">Suas Matérias</h3>
-                        <div id="subjects-list" class="space-y-3"></div>
+                        <div id="subjects-list" class="space-y-3">
+                            <p class="text-stone-300 text-sm italic">Nenhuma matéria cadastrada.</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- VIEW: REGISTRO (LOG) -->
-                <div id="view-log" class="hidden h-full flex flex-col animate-fade">
+                <div id="view-log" class="hidden h-full flex flex-col">
                     <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
                         <h2 class="text-center font-serif font-bold text-2xl mb-8 text-stone-800">Registrar Estudo</h2>
                         
@@ -152,7 +148,9 @@
                             
                             <div>
                                 <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
-                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
+                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                    <p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>
+                                </div>
                             </div>
                             
                             <div>
@@ -171,12 +169,14 @@
                 </div>
 
                 <!-- VIEW: HISTÓRICO -->
-                <div id="view-history" class="space-y-4 hidden animate-fade">
+                <div id="view-history" class="space-y-4 hidden">
                     <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
                         <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
                         <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0 regs</span>
                     </div>
-                    <div id="history-list" class="space-y-3 pb-20"></div>
+                    <div id="history-list" class="space-y-3 pb-20">
+                        <p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>
+                    </div>
                 </div>
 
             </main>
@@ -243,17 +243,25 @@
         // --- 4. SISTEMA DE LOGIN (Autenticação) ---
         if(auth) {
             auth.onAuthStateChanged((user) => {
+                const authScreen = document.getElementById('auth-screen');
+                const appContent = document.getElementById('app-content');
+                
                 if (user) {
+                    // LOGADO: Força o app a aparecer e esconde o login
                     currentUser = user;
-                    document.getElementById('auth-screen').classList.add('hidden');
-                    document.getElementById('app-content').classList.remove('hidden');
-                    document.getElementById('app-content').classList.add('flex');
+                    authScreen.classList.add('hidden');
+                    appContent.classList.remove('hidden');
+                    appContent.classList.add('flex');
+                    
+                    // IMPORTANTE: Força a view inicial a aparecer
+                    switchView('dashboard');
                     startListeners();
                 } else {
+                    // DESLOGADO
                     currentUser = null;
-                    document.getElementById('auth-screen').classList.remove('hidden');
-                    document.getElementById('app-content').classList.add('hidden');
-                    document.getElementById('app-content').classList.remove('flex');
+                    authScreen.classList.remove('hidden');
+                    appContent.classList.add('hidden');
+                    appContent.classList.remove('flex');
                 }
             });
         }
@@ -274,15 +282,12 @@
             try {
                 await auth.signInWithEmailAndPassword(email, pass);
             } catch (error) {
-                // Tenta criar conta se der erro de login
                 const loginErrors = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
                 if (loginErrors.includes(error.code)) {
                     try {
                         await auth.createUserWithEmailAndPassword(email, pass);
-                        // Cria matéria inicial
-                        await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({
-                            name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()
-                        });
+                        // Cria dados iniciais
+                        await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()});
                     } catch (createError) {
                         errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
                     }
@@ -298,58 +303,63 @@
 
         // --- 5. BANCO DE DADOS (Real-time) ---
         function startListeners() {
-            // Matérias
-            db.collection('users').doc(currentUser.uid).collection('subjects')
-              .orderBy('createdAt', 'asc')
-              .onSnapshot(snap => {
-                  subjects = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                  renderSubjects(); renderSubjectsGrid(); renderDashboard();
-              });
+            db.collection('users').doc(currentUser.uid).collection('subjects').orderBy('createdAt', 'asc').onSnapshot(snap => {
+                subjects = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderSubjects(); renderSubjectsGrid(); renderDashboard();
+            });
 
-            // Histórico
-            db.collection('users').doc(currentUser.uid).collection('sessions')
-              .orderBy('createdAt', 'desc')
-              .onSnapshot(snap => {
-                  sessions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                  renderHistory(); renderDashboard();
-              });
+            db.collection('users').doc(currentUser.uid).collection('sessions').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                sessions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderHistory(); renderDashboard();
+            });
         }
 
-        // --- 6. NAVEGAÇÃO ---
+        // --- 6. NAVEGAÇÃO ROBUSTA ---
         function switchView(viewName) {
+            // Esconde todas as divs de view
             ['dashboard', 'subjects', 'log', 'history'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
-                document.getElementById(`nav-${v}`).classList.remove('active');
+                const el = document.getElementById(`view-${v}`);
+                if(el) el.classList.add('hidden');
+                
+                const btn = document.getElementById(`nav-${v}`);
+                if(btn) btn.classList.remove('active');
             });
-            document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            const navBtn = document.getElementById(`nav-${viewName}`);
-            if(navBtn) navBtn.classList.add('active');
+            
+            // Mostra a view específica
+            const targetEl = document.getElementById(`view-${viewName}`);
+            if(targetEl) targetEl.classList.remove('hidden');
+            
+            const targetBtn = document.getElementById(`nav-${viewName}`);
+            if(targetBtn) targetBtn.classList.add('active');
+            
             if(viewName === 'dashboard') renderDashboard();
         }
 
         // --- 7. RENDERIZAÇÃO (Desenhar na tela) ---
         
-        // Tela de Matérias
         function renderSubjects() {
             const list = document.getElementById('subjects-list');
             const picker = document.getElementById('color-picker');
             
-            list.innerHTML = subjects.map(s => `
-                <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
-                        <span class="font-bold text-stone-700 text-lg">${s.name}</span>
+            if(subjects.length === 0) {
+                list.innerHTML = '<p class="text-stone-300 text-sm italic text-center mt-4">Nenhuma matéria cadastrada.</p>';
+            } else {
+                list.innerHTML = subjects.map(s => `
+                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
+                            <span class="font-bold text-stone-700 text-lg">${s.name}</span>
+                        </div>
+                        <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
+                `).join('');
+            }
 
             picker.innerHTML = COLORS.map(c => `
                 <button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c ? 'border-stone-800 scale-110 shadow-md' : 'border-transparent'}" style="background-color:${c}"></button>
             `).join('');
         }
 
-        // Tela de Registro (Grid de Matérias)
         function prepareLog() {
             switchView('log');
             document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
@@ -380,7 +390,6 @@
             btn.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 transition-all w-full flex items-center gap-2';
         }
 
-        // Tela de Histórico
         function renderHistory() {
             const list = document.getElementById('history-list');
             document.getElementById('history-count').innerText = `${sessions.length} regs`;
@@ -407,7 +416,6 @@
             }).join('');
         }
 
-        // Dashboard (Gráfico)
         function renderDashboard() {
             let total = 0, counts = {};
             sessions.forEach(s => {
@@ -422,18 +430,16 @@
             document.getElementById('total-hours').innerText = (total/60).toFixed(1);
             document.getElementById('total-sessions').innerText = sessions.length;
             
-            // Top Matéria
             let top = '-', max = 0;
             for(let k in counts) if(counts[k].val > max) { max = counts[k].val; top = k; }
             document.getElementById('top-subject').innerText = top;
 
-            // Gráfico CSS
             const chart = document.getElementById('chart-pie');
             const legend = document.getElementById('chart-legend');
             
             if(total === 0) {
                 chart.style.background = '#f3f4f6';
-                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados</span>';
+                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados. Adicione matérias e estudos!</span>';
                 return;
             }
 
@@ -452,7 +458,7 @@
             chart.style.background = `conic-gradient(${grad.join(', ')})`;
         }
 
-        // --- 8. AÇÕES (Salvar/Deletar) ---
+        // --- 8. AÇÕES ---
         async function addSubject() {
             const nameIn = document.getElementById('sub-name');
             if(!nameIn.value) return alert("Digite o nome!");
