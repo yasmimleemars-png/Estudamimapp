@@ -720,5 +720,195 @@
             renderHistory();
         });
     </script>
+    <script type="module">
+/* -----------------------------------------------------
+   1. IMPORTS CORRETOS DO FIREBASE (v11.0.2)
+----------------------------------------------------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { 
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { 
+    getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot,
+    query, orderBy, setDoc, writeBatch, getDocs 
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+/* -----------------------------------------------------
+   2. CONFIG CORRIGIDA
+----------------------------------------------------- */
+const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "estudamim-e5b35.firebaseapp.com",
+    projectId: "estudamim-e5b35",
+    storageBucket: "estudamim-e5b35.appspot.com",
+    messagingSenderId: "381225779008",
+    appId: "1:381225779008:web:XXXX"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* -----------------------------------------------------
+   3. PREVENÇÃO DE ERROS — FUNÇÕES FALTANTES
+----------------------------------------------------- */
+window.toggleLogMode = () => {};
+window.prepareLog = () => {};
+
+/* -----------------------------------------------------
+   4. ELEMENTOS
+----------------------------------------------------- */
+const loginScreen = document.getElementById("login-screen");
+const appScreen = document.getElementById("app-screen");
+
+const loginEmail = document.getElementById("login-email");
+const loginPass = document.getElementById("login-pass");
+const loginBtn = document.getElementById("btn-login");
+const registerBtn = document.getElementById("btn-register");
+const logoutBtn = document.getElementById("btn-logout");
+
+const subjectInput = document.getElementById("sub-name");
+const subjectBtn = document.getElementById("btn-add-subject");
+const subjectList = document.getElementById("subject-list");
+
+let currentUser = null;
+let selectedColor = "#3f51b5";
+
+/* -----------------------------------------------------
+   5. LOGIN
+----------------------------------------------------- */
+loginBtn.onclick = async () => {
+    try {
+        const email = loginEmail.value.trim();
+        const password = loginPass.value.trim();
+
+        if (!email || !password) return alert("Preencha e-mail e senha.");
+
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+        alert("Erro ao entrar: " + err.message);
+    }
+};
+
+/* -----------------------------------------------------
+   6. CADASTRO
+----------------------------------------------------- */
+registerBtn.onclick = async () => {
+    try {
+        const email = loginEmail.value.trim();
+        const password = loginPass.value.trim();
+
+        if (!email || !password) return alert("Preencha e-mail e senha.");
+
+        await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+        alert("Erro ao criar conta: " + err.message);
+    }
+};
+
+/* -----------------------------------------------------
+   7. LOGOUT
+----------------------------------------------------- */
+logoutBtn.onclick = async () => {
+    await signOut(auth);
+};
+
+/* -----------------------------------------------------
+   8. OBSERVA AUTENTICAÇÃO
+----------------------------------------------------- */
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        loginScreen.style.display = "none";
+        appScreen.style.display = "block";
+        loadSubjects(); // Carrega matérias
+    } else {
+        currentUser = null;
+        loginScreen.style.display = "block";
+        appScreen.style.display = "none";
+    }
+});
+
+/* -----------------------------------------------------
+   9. ADICIONAR MATÉRIA
+----------------------------------------------------- */
+subjectBtn.onclick = async () => {
+    const name = subjectInput.value.trim();
+    if (!name || !currentUser) return;
+
+    try {
+        await addDoc(
+            collection(db, "users", currentUser.uid, "subjects"),
+            {
+                name,
+                color: selectedColor,
+                createdAt: Date.now()
+            }
+        );
+
+        subjectInput.value = "";
+    } catch (err) {
+        console.error("Erro ao adicionar matéria:", err);
+    }
+};
+
+/* -----------------------------------------------------
+   10. LISTAR MATÉRIAS (tempo real)
+----------------------------------------------------- */
+function loadSubjects() {
+    if (!currentUser) return;
+
+    const q = query(
+        collection(db, "users", currentUser.uid, "subjects"),
+        orderBy("createdAt", "asc")
+    );
+
+    onSnapshot(q, (snap) => {
+        subjectList.innerHTML = "";
+
+        snap.forEach((docItem) => {
+            const data = docItem.data();
+
+            const li = document.createElement("div");
+            li.className = "subject-item";
+
+            li.innerHTML = `
+                <div class="subject-color" style="background:${data.color}"></div>
+                <span>${data.name}</span>
+                <button data-id="${docItem.id}" class="delete-subject">Excluir</button>
+            `;
+
+            subjectList.appendChild(li);
+        });
+
+        document.querySelectorAll(".delete-subject").forEach((btn) => {
+            btn.onclick = () => deleteSubject(btn.dataset.id);
+        });
+    });
+}
+
+/* -----------------------------------------------------
+   11. EXCLUIR MATÉRIA
+----------------------------------------------------- */
+async function deleteSubject(id) {
+    if (!currentUser) return;
+
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "subjects", id));
+    } catch (err) {
+        console.error("Erro ao excluir matéria:", err);
+    }
+}
+
+/* -----------------------------------------------------
+   12. DEFINIR COR DA MATÉRIA (se você tiver botões de cor)
+----------------------------------------------------- */
+window.setColor = (color) => {
+    selectedColor = color;
+};
+
+        </script>
 </body>
                                 </html>
