@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EstudaMim</title>
     
-    <!-- 1. Design (Tailwind CSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 2. Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- 3. Firebase (Banco de Dados) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -37,15 +34,20 @@
         /* Loader */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Animação do Cronômetro */
+        .pulse-animation { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+        }
     </style>
 </head>
 <body class="font-sans text-stone-800 h-screen flex justify-center bg-stone-100">
 
     <div class="w-full max-w-md bg-[#FDFBF7] shadow-2xl relative flex flex-col h-full overflow-hidden">
         
-        <!-- ========================== -->
-        <!--      TELA DE LOGIN         -->
-        <!-- ========================== -->
         <div id="auth-screen" class="absolute inset-0 z-[100] bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
             <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
             <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
@@ -63,12 +65,8 @@
             </div>
         </div>
 
-        <!-- ========================== -->
-        <!--      APP PRINCIPAL         -->
-        <!-- ========================== -->
         <div id="app-content" class="hidden flex-col h-full absolute inset-0 z-10 bg-[#FDFBF7]">
             
-            <!-- Header -->
             <header class="px-6 pt-10 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 flex justify-between items-center shrink-0">
                 <div>
                     <h1 class="text-3xl font-serif font-black text-stone-800 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
@@ -79,15 +77,20 @@
                 </button>
             </header>
 
-            <!-- Conteúdo com Scroll -->
             <main class="flex-1 overflow-y-auto p-6 pb-28 custom-scrollbar">
                 
-                <!-- VIEW: DASHBOARD (PADRÃO) -->
                 <div id="view-dashboard" class="space-y-6">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
-                        <h2 class="font-bold text-stone-700 mb-4 text-lg border-l-4 border-rose-300 pl-3">Resumo Geral</h2>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-stone-700 text-lg border-l-4 border-rose-300 pl-3">Resumo</h2>
+                            <select id="dashboard-filter" onchange="updateDashboardFilter()" class="text-xs bg-stone-50 border border-stone-200 rounded-lg p-2 font-bold text-stone-500 outline-none">
+                                <option value="all">Tudo</option>
+                                <option value="today">Hoje</option>
+                                <option value="month">Este Mês</option>
+                                <option value="year">Este Ano</option>
+                            </select>
+                        </div>
                         
-                        <!-- Gráfico -->
                         <div class="h-64 flex items-center justify-center relative my-4">
                             <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #f3f4f6; position: relative;"></div>
                             <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
@@ -113,7 +116,6 @@
                     </div>
                 </div>
 
-                <!-- VIEW: MATÉRIAS -->
                 <div id="view-subjects" class="space-y-6 hidden">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
                         <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Matéria</h2>
@@ -135,40 +137,58 @@
                     </div>
                 </div>
 
-                <!-- VIEW: REGISTRO (LOG) -->
                 <div id="view-log" class="hidden h-full flex flex-col">
-                    <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
-                        <h2 class="text-center font-serif font-bold text-2xl mb-8 text-stone-800">Registrar Estudo</h2>
+                    <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col relative overflow-hidden">
                         
-                        <div class="space-y-6 flex-1">
+                        <div class="flex p-1 bg-stone-100 rounded-xl mb-6">
+                            <button onclick="switchLogMode('manual')" id="tab-manual" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white text-stone-800 shadow-sm">Manual</button>
+                            <button onclick="switchLogMode('timer')" id="tab-timer" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all text-stone-400 hover:text-stone-600">Cronômetro</button>
+                        </div>
+
+                        <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar">
                             <div>
                                 <label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label>
-                                <input id="log-date" type="date" class="w-full p-4 bg-stone-50 rounded-2xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200">
+                                <input id="log-date" type="date" class="w-full p-3 bg-stone-50 rounded-xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200">
                             </div>
                             
                             <div>
                                 <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
-                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto custom-scrollbar pr-1">
                                     <p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>
                                 </div>
                             </div>
                             
-                            <div>
+                            <div id="mode-manual">
                                 <label class="text-xs font-bold text-stone-400 uppercase ml-1">Tempo (Minutos)</label>
                                 <div class="relative">
                                     <input id="log-duration" type="number" class="w-full p-4 pl-12 bg-stone-50 rounded-2xl text-2xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0">
                                     <i class="fa-regular fa-clock absolute left-5 top-[30px] text-stone-400 text-lg"></i>
                                 </div>
                             </div>
+
+                            <div id="mode-timer" class="hidden flex flex-col items-center justify-center py-4 bg-stone-50 rounded-2xl border border-stone-100">
+                                <div id="timer-display" class="text-5xl font-black font-serif text-stone-800 tracking-wider mb-6">00:00:00</div>
+                                
+                                <div class="flex gap-4 w-full px-6">
+                                    <button onclick="toggleTimer()" id="btn-timer-toggle" class="flex-1 py-3 bg-stone-800 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-all">
+                                        <i class="fa-solid fa-play mr-2"></i> Iniciar
+                                    </button>
+                                    <button onclick="resetTimer()" class="w-12 bg-rose-100 text-rose-500 rounded-xl font-bold hover:bg-rose-200 transition-all">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                </div>
+                                <button onclick="finishTimer()" id="btn-timer-finish" class="hidden w-[90%] mt-4 py-2 bg-green-100 text-green-700 border border-green-200 rounded-xl font-bold text-sm hover:bg-green-200 transition-all">
+                                    <i class="fa-solid fa-check mr-2"></i> Finalizar e Usar Tempo
+                                </button>
+                            </div>
                         </div>
                         
-                        <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-6 shadow-xl shadow-rose-200 hover:bg-rose-500 active:scale-95 transition-all">
+                        <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-4 shadow-xl shadow-rose-200 hover:bg-rose-500 active:scale-95 transition-all shrink-0">
                             Salvar Sessão
                         </button>
                     </div>
                 </div>
 
-                <!-- VIEW: HISTÓRICO -->
                 <div id="view-history" class="space-y-4 hidden">
                     <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
                         <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
@@ -181,7 +201,6 @@
 
             </main>
 
-            <!-- Navegação Inferior -->
             <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
                 <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
                     <i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i>
@@ -202,15 +221,11 @@
                     <span class="text-[10px] transition-colors">Histórico</span>
                 </button>
                 
-                <div class="w-2 opacity-0"></div> <!-- Espaçador -->
-            </nav>
+                <div class="w-2 opacity-0"></div> </nav>
 
         </div>
     </div>
 
-    <!-- ========================== -->
-    <!--     LÓGICA JAVASCRIPT      -->
-    <!-- ========================== -->
     <script>
         // --- 1. CONFIGURAÇÃO (Já incluída) ---
         const firebaseConfig = {
@@ -239,6 +254,14 @@
         let selectedColor = '#E88D93';
         let selectedSubjectId = null;
         const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
+        
+        // Variáveis do Dashboard
+        let currentFilter = 'all';
+
+        // Variáveis do Cronômetro
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
 
         // --- 4. SISTEMA DE LOGIN (Autenticação) ---
         if(auth) {
@@ -247,17 +270,13 @@
                 const appContent = document.getElementById('app-content');
                 
                 if (user) {
-                    // LOGADO: Força o app a aparecer e esconde o login
                     currentUser = user;
                     authScreen.classList.add('hidden');
                     appContent.classList.remove('hidden');
                     appContent.classList.add('flex');
-                    
-                    // IMPORTANTE: Força a view inicial a aparecer
                     switchView('dashboard');
                     startListeners();
                 } else {
-                    // DESLOGADO
                     currentUser = null;
                     authScreen.classList.remove('hidden');
                     appContent.classList.add('hidden');
@@ -286,7 +305,6 @@
                 if (loginErrors.includes(error.code)) {
                     try {
                         await auth.createUserWithEmailAndPassword(email, pass);
-                        // Cria dados iniciais
                         await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()});
                     } catch (createError) {
                         errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
@@ -316,7 +334,6 @@
 
         // --- 6. NAVEGAÇÃO ROBUSTA ---
         function switchView(viewName) {
-            // Esconde todas as divs de view
             ['dashboard', 'subjects', 'log', 'history'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if(el) el.classList.add('hidden');
@@ -325,17 +342,100 @@
                 if(btn) btn.classList.remove('active');
             });
             
-            // Mostra a view específica
             const targetEl = document.getElementById(`view-${viewName}`);
             if(targetEl) targetEl.classList.remove('hidden');
             
             const targetBtn = document.getElementById(`nav-${viewName}`);
             if(targetBtn) targetBtn.classList.add('active');
             
+            // Se sair da tela de log, pause o cronômetro para não perder
+            if(viewName !== 'log' && isTimerRunning) {
+                toggleTimer(); // Pausa
+            }
+            
             if(viewName === 'dashboard') renderDashboard();
         }
 
-        // --- 7. RENDERIZAÇÃO (Desenhar na tela) ---
+        // --- 7. LÓGICA DO CRONÔMETRO (NOVO) ---
+        function switchLogMode(mode) {
+            const manTab = document.getElementById('tab-manual');
+            const timTab = document.getElementById('tab-timer');
+            const manDiv = document.getElementById('mode-manual');
+            const timDiv = document.getElementById('mode-timer');
+
+            if(mode === 'manual') {
+                manTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white text-stone-800 shadow-sm";
+                timTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all text-stone-400 hover:text-stone-600";
+                manDiv.classList.remove('hidden');
+                timDiv.classList.add('hidden');
+            } else {
+                timTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white text-stone-800 shadow-sm";
+                manTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all text-stone-400 hover:text-stone-600";
+                timDiv.classList.remove('hidden');
+                manDiv.classList.add('hidden');
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            const finishBtn = document.getElementById('btn-timer-finish');
+            const display = document.getElementById('timer-display');
+            
+            if(!isTimerRunning) {
+                // Iniciar
+                isTimerRunning = true;
+                btn.innerHTML = '<i class="fa-solid fa-pause mr-2"></i> Pausar';
+                btn.classList.replace('bg-stone-800', 'bg-rose-500');
+                display.classList.add('text-rose-500'); // Cor ativa
+                finishBtn.classList.add('hidden');
+                
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    display.innerText = formatTime(timerSeconds);
+                }, 1000);
+            } else {
+                // Pausar
+                isTimerRunning = false;
+                clearInterval(timerInterval);
+                btn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Retomar';
+                btn.classList.replace('bg-rose-500', 'bg-stone-800');
+                display.classList.remove('text-rose-500');
+                finishBtn.classList.remove('hidden');
+            }
+        }
+
+        function resetTimer() {
+            if(isTimerRunning) toggleTimer(); // Pausa antes de resetar
+            timerSeconds = 0;
+            document.getElementById('timer-display').innerText = "00:00:00";
+            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play mr-2"></i> Iniciar';
+            document.getElementById('btn-timer-finish').classList.add('hidden');
+        }
+
+        function finishTimer() {
+            // Converte segundos para minutos (mínimo 1)
+            let minutes = Math.floor(timerSeconds / 60);
+            if(minutes === 0 && timerSeconds > 0) minutes = 1;
+            
+            // Joga para o input manual
+            document.getElementById('log-duration').value = minutes;
+            
+            // Volta para a aba manual e reseta o timer
+            switchLogMode('manual');
+            resetTimer();
+            
+            // Feedback visual
+            alert(`Tempo de ${minutes} min registrado! Clique em "Salvar Sessão" para confirmar.`);
+        }
+
+        // --- 8. RENDERIZAÇÃO ---
         
         function renderSubjects() {
             const list = document.getElementById('subjects-list');
@@ -364,6 +464,10 @@
             switchView('log');
             document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('log-duration').value = '';
+            // Resetar timer se estiver rodando
+            if(isTimerRunning) resetTimer();
+            switchLogMode('manual'); // Padrão manual
+            
             selectedSubjectId = null;
             renderSubjectsGrid();
         }
@@ -416,9 +520,37 @@
             }).join('');
         }
 
+        // --- ATUALIZAÇÃO DO DASHBOARD COM FILTRO ---
+        function updateDashboardFilter() {
+            currentFilter = document.getElementById('dashboard-filter').value;
+            renderDashboard();
+        }
+
         function renderDashboard() {
+            let filteredSessions = sessions;
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // Lógica de Filtragem
+            if (currentFilter === 'today') {
+                filteredSessions = sessions.filter(s => s.date === todayStr);
+            } else if (currentFilter === 'month') {
+                filteredSessions = sessions.filter(s => {
+                    const sDate = new Date(s.date + 'T00:00:00'); // T00 para evitar fuso
+                    return sDate.getMonth() === currentMonth && sDate.getFullYear() === currentYear;
+                });
+            } else if (currentFilter === 'year') {
+                filteredSessions = sessions.filter(s => {
+                    const sDate = new Date(s.date + 'T00:00:00');
+                    return sDate.getFullYear() === currentYear;
+                });
+            }
+
+            // Calculos (usando filteredSessions em vez de sessions)
             let total = 0, counts = {};
-            sessions.forEach(s => {
+            filteredSessions.forEach(s => {
                 total += s.duration;
                 const sub = subjects.find(sb => sb.id === s.subjectId);
                 if(sub) {
@@ -428,7 +560,7 @@
             });
 
             document.getElementById('total-hours').innerText = (total/60).toFixed(1);
-            document.getElementById('total-sessions').innerText = sessions.length;
+            document.getElementById('total-sessions').innerText = filteredSessions.length;
             
             let top = '-', max = 0;
             for(let k in counts) if(counts[k].val > max) { max = counts[k].val; top = k; }
@@ -439,7 +571,7 @@
             
             if(total === 0) {
                 chart.style.background = '#f3f4f6';
-                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados. Adicione matérias e estudos!</span>';
+                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados neste período.</span>';
                 return;
             }
 
@@ -472,11 +604,15 @@
         async function saveSession() {
             const date = document.getElementById('log-date').value;
             const dur = document.getElementById('log-duration').value;
+            
             if(!selectedSubjectId) return alert("Escolha a matéria!");
-            if(!dur) return alert("Digite o tempo!");
+            if(!dur || dur <= 0) return alert("O tempo deve ser maior que 0!");
+            
             try {
                 await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId: selectedSubjectId, date: date, duration: parseInt(dur), createdAt: Date.now()});
                 switchView('dashboard');
+                // Reseta timer se usado
+                resetTimer();
             } catch(e) { alert("Erro: " + e.message); }
         }
 
@@ -485,4 +621,4 @@
 
     </script>
 </body>
-                              </html>
+</html>
