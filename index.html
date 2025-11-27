@@ -86,7 +86,7 @@
                             <select id="dashboard-filter" onchange="updateDashboardFilter()" class="text-xs bg-stone-50 border border-stone-200 rounded-lg p-2 font-bold text-stone-500 outline-none">
                                 <option value="all">Tudo</option>
                                 <option value="today">Hoje</option>
-                                <option value="month">Este Mês</option>
+                                <option value="week">Esta Semana</option> <option value="month">Este Mês</option>
                                 <option value="year">Este Ano</option>
                             </select>
                         </div>
@@ -255,6 +255,14 @@
         let selectedSubjectId = null;
         const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
         
+        // Novas matérias padrão
+        const DEFAULT_SUBJECTS = [
+            "Língua Portuguesa", "Raciocínio Lógico", "Atualidades", "Informática",
+            "Medicina Legal", "Legislação Geral", "Direito Administrativo", 
+            "Direito Constitucional", "Direito Penal", "Direito Processual Penal", 
+            "Legislação Extravagante", "Arquivologia", "Simulado"
+        ];
+        
         // Variáveis do Dashboard
         let currentFilter = 'all';
 
@@ -304,8 +312,22 @@
                 const loginErrors = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
                 if (loginErrors.includes(error.code)) {
                     try {
+                        // CRIAÇÃO DE CONTA COM NOVAS MATÉRIAS
                         await auth.createUserWithEmailAndPassword(email, pass);
-                        await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()});
+                        
+                        // Usar Batch para criar todas as matérias de uma vez
+                        const batch = db.batch();
+                        const userSubRef = db.collection('users').doc(auth.currentUser.uid).collection('subjects');
+                        
+                        DEFAULT_SUBJECTS.forEach((subName, index) => {
+                            const newDoc = userSubRef.doc();
+                            // Seleciona cor ciclicamente
+                            const color = COLORS[index % COLORS.length];
+                            batch.set(newDoc, {name: subName, color: color, createdAt: Date.now() + index});
+                        });
+                        
+                        await batch.commit();
+
                     } catch (createError) {
                         errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
                     }
@@ -356,7 +378,7 @@
             if(viewName === 'dashboard') renderDashboard();
         }
 
-        // --- 7. LÓGICA DO CRONÔMETRO (NOVO) ---
+        // --- 7. LÓGICA DO CRONÔMETRO ---
         function switchLogMode(mode) {
             const manTab = document.getElementById('tab-manual');
             const timTab = document.getElementById('tab-timer');
@@ -431,7 +453,6 @@
             switchLogMode('manual');
             resetTimer();
             
-            // Feedback visual
             alert(`Tempo de ${minutes} min registrado! Clique em "Salvar Sessão" para confirmar.`);
         }
 
@@ -536,9 +557,26 @@
             // Lógica de Filtragem
             if (currentFilter === 'today') {
                 filteredSessions = sessions.filter(s => s.date === todayStr);
+            } else if (currentFilter === 'week') {
+                // Calcular o domingo (início) e sábado (fim) da semana atual
+                const curr = new Date();
+                const first = curr.getDate() - curr.getDay(); // Dia do mês - Dia da semana (0-6)
+                const firstDay = new Date(curr.setDate(first)); // Define para domingo
+                firstDay.setHours(0,0,0,0);
+
+                const lastDay = new Date(firstDay);
+                lastDay.setDate(lastDay.getDate() + 6); // Sábado
+                lastDay.setHours(23,59,59,999);
+
+                filteredSessions = sessions.filter(s => {
+                    // Converter string da sessão para Data (adicionando hora para evitar problemas de fuso)
+                    const sDate = new Date(s.date + 'T12:00:00'); 
+                    return sDate >= firstDay && sDate <= lastDay;
+                });
+
             } else if (currentFilter === 'month') {
                 filteredSessions = sessions.filter(s => {
-                    const sDate = new Date(s.date + 'T00:00:00'); // T00 para evitar fuso
+                    const sDate = new Date(s.date + 'T00:00:00'); 
                     return sDate.getMonth() === currentMonth && sDate.getFullYear() === currentYear;
                 });
             } else if (currentFilter === 'year') {
@@ -621,4 +659,4 @@
 
     </script>
 </body>
-</html>
+                        </html>
