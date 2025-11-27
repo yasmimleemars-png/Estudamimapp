@@ -2,590 +2,623 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma de Estudos - Concurso</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EstudaMim</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
     <style>
-        :root {
-            --primary-color: #6c5ce7;
-            --secondary-color: #a29bfe;
-            --bg-color: #f4f7f6;
-            --text-color: #2d3436;
-            --white: #ffffff;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-
-        /* Painel de Controles */
-        .controls {
-            background: var(--white);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 1000px;
-        }
-
-        .nav-controls {
-            display: flex;
-            gap: 10px;
-            border-left: 2px solid #eee;
-            padding-left: 15px;
-            margin-left: 10px;
-        }
-
-        @media (max-width: 800px) {
-            .nav-controls {
-                border-left: none;
-                padding-left: 0;
-                margin-left: 0;
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        select, button, input {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background-color: #5649c0;
-        }
-
-        button.secondary {
-            background-color: var(--secondary-color);
-        }
+        /* --- ESTILOS VISUAIS --- */
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Lato', sans-serif; }
+        body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; }
         
-        button.nav-btn {
-            background-color: #dfe6e9;
-            color: #2d3436;
-        }
+        /* Ocultar elementos (IMPORTANTE: display none real) */
+        .hidden { display: none !important; }
         
-        button.nav-btn:hover {
-            background-color: #b2bec3;
-        }
-
-        /* Área do Calendário */
-        .calendar-container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .day-header {
-            text-align: center;
-            font-weight: bold;
-            color: #636e72;
-            padding: 10px;
-        }
-
-        .day-cell {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 10px;
-            min-height: 120px;
-            box-shadow: var(--shadow);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .day-number {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #b2bec3;
-        }
+        /* Scrollbar Personalizada */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
         
-        .is-today {
-            border: 2px solid var(--primary-color);
-        }
-
-        .study-block {
-            padding: 5px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            color: #333;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        .study-block:hover {
-            opacity: 0.9;
-        }
-
-        .remove-btn {
-            background: none;
-            border: none;
-            color: #444;
-            font-weight: bold;
-            font-size: 14px;
-            padding: 0 0 0 5px;
-        }
-
-        .remove-btn:hover {
-            color: red;
-        }
-
-        /* Estilos para visualização Anual */
-        .year-view {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .month-card {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 15px;
-            box-shadow: var(--shadow);
-        }
-
-        .month-title {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-        }
-
-        .month-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            font-size: 10px;
-        }
-
-        .month-day {
-            text-align: center;
-            padding: 4px 0;
-            background: #eee;
-            border-radius: 2px;
-        }
+        /* Botão de Navegação Ativo */
+        .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
+        .nav-btn.active i { color: #E88D93; }
         
-        .has-study {
-            background-color: var(--secondary-color);
-            color: white;
-            font-weight: bold;
-        }
+        /* Loader */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Estilos para visualização Semanal */
-        .week-view {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            max-width: 1200px;
-            overflow-x: auto;
-            padding-bottom: 20px;
+        /* Animação do Cronômetro */
+        .pulse-animation { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
         }
-
-        .week-day-col {
-            flex: 1;
-            min-width: 140px;
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 10px;
-            box-shadow: var(--shadow);
-        }
-
-        .week-day-title {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-
     </style>
 </head>
-<body>
+<body class="font-sans text-stone-800 h-screen flex justify-center bg-stone-100">
 
-    <h1>📅 Meu Cronograma de Estudos</h1>
-
-    <div class="controls">
-        <select id="subjectSelect">
-            </select>
-        <input type="text" id="customSubject" placeholder="Ou digite nova...">
-        <input type="date" id="studyDate">
-        <button onclick="addStudyBlock()">+ Adicionar</button>
+    <div class="w-full max-w-md bg-[#FDFBF7] shadow-2xl relative flex flex-col h-full overflow-hidden">
         
-        <button class="secondary" onclick="exportData()">💾 Salvar</button>
-        <button class="secondary" onclick="document.getElementById('fileInput').click()">📂 Carregar</button>
-        <input type="file" id="fileInput" style="display: none;" onchange="importData(this)">
+        <div id="auth-screen" class="absolute inset-0 z-[100] bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
+            <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
+            <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
+            <p class="text-stone-400 text-sm mb-10 text-center font-medium">Seus estudos salvos na nuvem.</p>
 
-        <div class="nav-controls">
-            <select id="viewSelect" onchange="changeView()">
-                <option value="weekly">Semanal</option>
-                <option value="monthly" selected>Mensal</option>
-                <option value="yearly">Anual</option>
-            </select>
+            <div class="w-full space-y-4">
+                <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Seu e-mail">
+                <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Sua senha">
+                
+                <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
+                    <span id="btn-text">Entrar / Criar Conta</span>
+                    <div id="auth-loader" class="loader hidden"></div>
+                </button>
+                <p id="auth-error" class="text-rose-500 text-xs text-center font-bold min-h-[20px] mt-2"></p>
+            </div>
+        </div>
+
+        <div id="app-content" class="hidden flex-col h-full absolute inset-0 z-10 bg-[#FDFBF7]">
             
-            <button class="nav-btn" onclick="changePeriod(-1)">◀</button>
-            <button class="nav-btn" onclick="goToToday()">Hoje</button>
-            <button class="nav-btn" onclick="changePeriod(1)">▶</button>
+            <header class="px-6 pt-10 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 flex justify-between items-center shrink-0">
+                <div>
+                    <h1 class="text-3xl font-serif font-black text-stone-800 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
+                    <p class="text-stone-400 text-xs mt-1">Olá, estudante!</p>
+                </div>
+                <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-stone-50 text-stone-400 hover:bg-rose-100 hover:text-rose-500 transition-colors flex items-center justify-center border border-stone-100">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6 pb-28 custom-scrollbar">
+                
+                <div id="view-dashboard" class="space-y-6">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-stone-700 text-lg border-l-4 border-rose-300 pl-3">Resumo</h2>
+                            <select id="dashboard-filter" onchange="updateDashboardFilter()" class="text-xs bg-stone-50 border border-stone-200 rounded-lg p-2 font-bold text-stone-500 outline-none">
+                                <option value="all">Tudo</option>
+                                <option value="today">Hoje</option>
+                                <option value="month">Este Mês</option>
+                                <option value="year">Este Ano</option>
+                            </select>
+                        </div>
+                        
+                        <div class="h-64 flex items-center justify-center relative my-4">
+                            <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #f3f4f6; position: relative;"></div>
+                            <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
+                                <span id="total-hours" class="text-4xl font-black text-stone-800 font-serif">0.0</span>
+                                <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
+                            </div>
+                        </div>
+                        
+                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6">
+                            <span class="text-xs text-stone-400 italic">Adicione matérias para começar</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-rose-50 p-5 rounded-3xl text-rose-800 border border-rose-100 shadow-sm">
+                            <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Maior Foco</p>
+                            <p id="top-subject" class="font-bold text-lg leading-tight mt-1">-</p>
+                        </div>
+                        <div class="bg-sky-50 p-5 rounded-3xl text-sky-800 border border-sky-100 shadow-sm">
+                            <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Sessões</p>
+                            <p id="total-sessions" class="font-bold text-lg mt-1">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-subjects" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
+                        <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Matéria</h2>
+                        <input id="sub-name" class="w-full p-4 bg-stone-50 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Nome da disciplina...">
+                        
+                        <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Cor</div>
+                        <div id="color-picker" class="flex gap-3 mb-6 overflow-x-auto pb-2 px-1"></div>
+                        
+                        <button onclick="addSubject()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all">
+                            Adicionar
+                        </button>
+                    </div>
+
+                    <div class="pl-2">
+                        <h3 class="text-xs font-bold text-stone-400 uppercase mb-3">Suas Matérias</h3>
+                        <div id="subjects-list" class="space-y-3">
+                            <p class="text-stone-300 text-sm italic">Nenhuma matéria cadastrada.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-log" class="hidden h-full flex flex-col">
+                    <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col relative overflow-hidden">
+                        
+                        <div class="flex p-1 bg-stone-100 rounded-xl mb-6">
+                            <button onclick="switchLogMode('manual')" id="tab-manual" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white text-stone-800 shadow-sm">Manual</button>
+                            <button onclick="switchLogMode('timer')" id="tab-timer" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all text-stone-400 hover:text-stone-600">Cronômetro</button>
+                        </div>
+
+                        <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+                            <div>
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label>
+                                <input id="log-date" type="date" class="w-full p-3 bg-stone-50 rounded-xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200">
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
+                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+                                    <p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>
+                                </div>
+                            </div>
+                            
+                            <div id="mode-manual">
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Tempo (Minutos)</label>
+                                <div class="relative">
+                                    <input id="log-duration" type="number" class="w-full p-4 pl-12 bg-stone-50 rounded-2xl text-2xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0">
+                                    <i class="fa-regular fa-clock absolute left-5 top-[30px] text-stone-400 text-lg"></i>
+                                </div>
+                            </div>
+
+                            <div id="mode-timer" class="hidden flex flex-col items-center justify-center py-4 bg-stone-50 rounded-2xl border border-stone-100">
+                                <div id="timer-display" class="text-5xl font-black font-serif text-stone-800 tracking-wider mb-6">00:00:00</div>
+                                
+                                <div class="flex gap-4 w-full px-6">
+                                    <button onclick="toggleTimer()" id="btn-timer-toggle" class="flex-1 py-3 bg-stone-800 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-all">
+                                        <i class="fa-solid fa-play mr-2"></i> Iniciar
+                                    </button>
+                                    <button onclick="resetTimer()" class="w-12 bg-rose-100 text-rose-500 rounded-xl font-bold hover:bg-rose-200 transition-all">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                </div>
+                                <button onclick="finishTimer()" id="btn-timer-finish" class="hidden w-[90%] mt-4 py-2 bg-green-100 text-green-700 border border-green-200 rounded-xl font-bold text-sm hover:bg-green-200 transition-all">
+                                    <i class="fa-solid fa-check mr-2"></i> Finalizar e Usar Tempo
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-4 shadow-xl shadow-rose-200 hover:bg-rose-500 active:scale-95 transition-all shrink-0">
+                            Salvar Sessão
+                        </button>
+                    </div>
+                </div>
+
+                <div id="view-history" class="space-y-4 hidden">
+                    <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
+                        <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
+                        <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0 regs</span>
+                    </div>
+                    <div id="history-list" class="space-y-3 pb-20">
+                        <p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>
+                    </div>
+                </div>
+
+            </main>
+
+            <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
+                    <i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i>
+                    <span class="text-[10px] transition-colors">Resumo</span>
+                </button>
+                
+                <button onclick="switchView('subjects')" id="nav-subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
+                    <i class="fa-solid fa-book text-xl mb-1 transition-colors"></i>
+                    <span class="text-[10px] transition-colors">Matérias</span>
+                </button>
+                
+                <button onclick="prepareLog()" class="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-10 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </button>
+                
+                <button onclick="switchView('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
+                    <i class="fa-solid fa-list-ul text-xl mb-1 transition-colors"></i>
+                    <span class="text-[10px] transition-colors">Histórico</span>
+                </button>
+                
+                <div class="w-2 opacity-0"></div> </nav>
+
         </div>
     </div>
 
-    <h2 id="currentPeriodLabel"></h2>
-    
-    <div id="calendar" class="calendar-container"></div>
-    <div id="yearContainer" class="year-view" style="display: none;"></div>
-    <div id="weekContainer" class="week-view" style="display: none;"></div>
-
     <script>
-        // Lista Atualizada (Sem Matemática, Com novas matérias)
-        const defaultSubjects = [
-            "Língua Portuguesa", 
-            "Raciocínio Lógico", 
-            "Atualidades", 
-            "Informática", 
-            "Medicina Legal", 
-            "Legislação Geral", 
-            "Direito Administrativo", 
-            "Direito Constitucional", 
-            "Direito Penal", 
-            "Direito Processual Penal", 
-            "Legislação Extravagante", 
-            "Arquivologia", 
-            "Simulados"
-        ];
-
-        // Paleta Expandida (Cores Pastéis)
-        const subjectColors = {
-            "Língua Portuguesa": "#ffadad",
-            "Raciocínio Lógico": "#ffd6a5",
-            "Atualidades": "#fdffb6",
-            "Informática": "#caffbf",
-            "Medicina Legal": "#9bf6ff",
-            "Legislação Geral": "#a0c4ff",
-            "Direito Administrativo": "#bdb2ff",
-            "Direito Constitucional": "#ffc6ff",
-            "Direito Penal": "#fffffc",
-            "Direito Processual Penal": "#e7cba9",
-            "Legislação Extravagante": "#e2f0cb",
-            "Arquivologia": "#b5ead7",
-            "Simulados": "#ff9aa2"
+        // --- 1. CONFIGURAÇÃO (Já incluída) ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
+          authDomain: "estudamim-e5b35.firebaseapp.com",
+          projectId: "estudamim-e5b35",
+          storageBucket: "estudamim-e5b35.firebasestorage.app",
+          messagingSenderId: "593504107114",
+          appId: "1:593504107114:web:0ff19a1fb6938da0d3e813"
         };
 
-        function getSubjectColor(subject) {
-            if (subjectColors[subject]) return subjectColors[subject];
-            // Cor padrão aleatória para novas
-            return '#dfe6e9'; 
+        // --- 2. INICIALIZAÇÃO ---
+        let auth, db, currentUser = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (e) {
+            console.error("Erro Firebase:", e);
+            alert("Erro de conexão. Recarregue a página.");
         }
 
-        let studyData = JSON.parse(localStorage.getItem('studyData')) || [];
+        // --- 3. VARIÁVEIS DE ESTADO ---
+        let subjects = [];
+        let sessions = [];
+        let selectedColor = '#E88D93';
+        let selectedSubjectId = null;
+        const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
         
-        // Estado da visualização (Data que está sendo exibida)
-        let viewDate = new Date();
+        // Variáveis do Dashboard
+        let currentFilter = 'all';
 
-        // Inicialização
-        function init() {
-            populateSubjectSelect();
-            document.getElementById('studyDate').valueAsDate = new Date();
-            renderView();
-        }
+        // Variáveis do Cronômetro
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
 
-        function populateSubjectSelect() {
-            const select = document.getElementById('subjectSelect');
-            select.innerHTML = '<option value="">Selecione a Disciplina...</option>';
-            defaultSubjects.forEach(subj => {
-                const option = document.createElement('option');
-                option.value = subj;
-                option.textContent = subj;
-                select.appendChild(option);
+        // --- 4. SISTEMA DE LOGIN (Autenticação) ---
+        if(auth) {
+            auth.onAuthStateChanged((user) => {
+                const authScreen = document.getElementById('auth-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (user) {
+                    currentUser = user;
+                    authScreen.classList.add('hidden');
+                    appContent.classList.remove('hidden');
+                    appContent.classList.add('flex');
+                    switchView('dashboard');
+                    startListeners();
+                } else {
+                    currentUser = null;
+                    authScreen.classList.remove('hidden');
+                    appContent.classList.add('hidden');
+                    appContent.classList.remove('flex');
+                }
             });
         }
 
-        function addStudyBlock() {
-            const selectVal = document.getElementById('subjectSelect').value;
-            const customVal = document.getElementById('customSubject').value;
-            const dateVal = document.getElementById('studyDate').value;
-            
-            const subject = customVal || selectVal;
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('auth-error');
+            const loader = document.getElementById('auth-loader');
+            const btnText = document.getElementById('btn-text');
 
-            if (!subject || !dateVal) {
-                alert("Selecione disciplina e data.");
+            if (!email || !pass) { errorMsg.innerText = "Preencha tudo!"; return; }
+            
+            errorMsg.innerText = "";
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (error) {
+                const loginErrors = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
+                if (loginErrors.includes(error.code)) {
+                    try {
+                        await auth.createUserWithEmailAndPassword(email, pass);
+                        await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()});
+                    } catch (createError) {
+                        errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
+                    }
+                } else {
+                    errorMsg.innerText = "Erro: " + error.message;
+                }
+            }
+            loader.classList.add('hidden');
+            btnText.classList.remove('hidden');
+        }
+
+        function handleLogout() { auth.signOut(); }
+
+        // --- 5. BANCO DE DADOS (Real-time) ---
+        function startListeners() {
+            db.collection('users').doc(currentUser.uid).collection('subjects').orderBy('createdAt', 'asc').onSnapshot(snap => {
+                subjects = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderSubjects(); renderSubjectsGrid(); renderDashboard();
+            });
+
+            db.collection('users').doc(currentUser.uid).collection('sessions').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                sessions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderHistory(); renderDashboard();
+            });
+        }
+
+        // --- 6. NAVEGAÇÃO ROBUSTA ---
+        function switchView(viewName) {
+            ['dashboard', 'subjects', 'log', 'history'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if(el) el.classList.add('hidden');
+                
+                const btn = document.getElementById(`nav-${v}`);
+                if(btn) btn.classList.remove('active');
+            });
+            
+            const targetEl = document.getElementById(`view-${viewName}`);
+            if(targetEl) targetEl.classList.remove('hidden');
+            
+            const targetBtn = document.getElementById(`nav-${viewName}`);
+            if(targetBtn) targetBtn.classList.add('active');
+            
+            // Se sair da tela de log, pause o cronômetro para não perder
+            if(viewName !== 'log' && isTimerRunning) {
+                toggleTimer(); // Pausa
+            }
+            
+            if(viewName === 'dashboard') renderDashboard();
+        }
+
+        // --- 7. LÓGICA DO CRONÔMETRO (NOVO) ---
+        function switchLogMode(mode) {
+            const manTab = document.getElementById('tab-manual');
+            const timTab = document.getElementById('tab-timer');
+            const manDiv = document.getElementById('mode-manual');
+            const timDiv = document.getElementById('mode-timer');
+
+            if(mode === 'manual') {
+                manTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white text-stone-800 shadow-sm";
+                timTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all text-stone-400 hover:text-stone-600";
+                manDiv.classList.remove('hidden');
+                timDiv.classList.add('hidden');
+            } else {
+                timTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white text-stone-800 shadow-sm";
+                manTab.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all text-stone-400 hover:text-stone-600";
+                timDiv.classList.remove('hidden');
+                manDiv.classList.add('hidden');
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            const finishBtn = document.getElementById('btn-timer-finish');
+            const display = document.getElementById('timer-display');
+            
+            if(!isTimerRunning) {
+                // Iniciar
+                isTimerRunning = true;
+                btn.innerHTML = '<i class="fa-solid fa-pause mr-2"></i> Pausar';
+                btn.classList.replace('bg-stone-800', 'bg-rose-500');
+                display.classList.add('text-rose-500'); // Cor ativa
+                finishBtn.classList.add('hidden');
+                
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    display.innerText = formatTime(timerSeconds);
+                }, 1000);
+            } else {
+                // Pausar
+                isTimerRunning = false;
+                clearInterval(timerInterval);
+                btn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Retomar';
+                btn.classList.replace('bg-rose-500', 'bg-stone-800');
+                display.classList.remove('text-rose-500');
+                finishBtn.classList.remove('hidden');
+            }
+        }
+
+        function resetTimer() {
+            if(isTimerRunning) toggleTimer(); // Pausa antes de resetar
+            timerSeconds = 0;
+            document.getElementById('timer-display').innerText = "00:00:00";
+            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play mr-2"></i> Iniciar';
+            document.getElementById('btn-timer-finish').classList.add('hidden');
+        }
+
+        function finishTimer() {
+            // Converte segundos para minutos (mínimo 1)
+            let minutes = Math.floor(timerSeconds / 60);
+            if(minutes === 0 && timerSeconds > 0) minutes = 1;
+            
+            // Joga para o input manual
+            document.getElementById('log-duration').value = minutes;
+            
+            // Volta para a aba manual e reseta o timer
+            switchLogMode('manual');
+            resetTimer();
+            
+            // Feedback visual
+            alert(`Tempo de ${minutes} min registrado! Clique em "Salvar Sessão" para confirmar.`);
+        }
+
+        // --- 8. RENDERIZAÇÃO ---
+        
+        function renderSubjects() {
+            const list = document.getElementById('subjects-list');
+            const picker = document.getElementById('color-picker');
+            
+            if(subjects.length === 0) {
+                list.innerHTML = '<p class="text-stone-300 text-sm italic text-center mt-4">Nenhuma matéria cadastrada.</p>';
+            } else {
+                list.innerHTML = subjects.map(s => `
+                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
+                            <span class="font-bold text-stone-700 text-lg">${s.name}</span>
+                        </div>
+                        <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            }
+
+            picker.innerHTML = COLORS.map(c => `
+                <button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c ? 'border-stone-800 scale-110 shadow-md' : 'border-transparent'}" style="background-color:${c}"></button>
+            `).join('');
+        }
+
+        function prepareLog() {
+            switchView('log');
+            document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('log-duration').value = '';
+            // Resetar timer se estiver rodando
+            if(isTimerRunning) resetTimer();
+            switchLogMode('manual'); // Padrão manual
+            
+            selectedSubjectId = null;
+            renderSubjectsGrid();
+        }
+
+        function renderSubjectsGrid() {
+            const grid = document.getElementById('log-subjects-grid');
+            if(subjects.length === 0) {
+                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>';
+                return;
+            }
+            grid.innerHTML = subjects.map(s => `
+                <button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 hover:opacity-100 transition-all w-full flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full" style="background:${s.color}"></span>
+                    <span class="font-bold text-sm text-stone-600">${s.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectLogSubject(id, btn) {
+            selectedSubjectId = id;
+            document.querySelectorAll('.sub-grid-btn').forEach(b => {
+                b.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 transition-all w-full flex items-center gap-2';
+            });
+            btn.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 transition-all w-full flex items-center gap-2';
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            document.getElementById('history-count').innerText = `${sessions.length} regs`;
+            
+            if(sessions.length === 0) { list.innerHTML = '<p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>'; return; }
+            
+            list.innerHTML = sessions.map(s => {
+                const sub = subjects.find(sb => sb.id === s.subjectId) || {name: 'Arquivado', color: '#ccc'};
+                return `
+                    <div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div>
+                            <div>
+                                <h4 class="font-bold text-stone-700">${sub.name}</h4>
+                                <p class="text-xs text-stone-400 mt-1"><i class="fa-regular fa-calendar"></i> ${s.date.split('-').reverse().join('/')}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span>
+                            <button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold hover:text-rose-600 uppercase mt-1">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- ATUALIZAÇÃO DO DASHBOARD COM FILTRO ---
+        function updateDashboardFilter() {
+            currentFilter = document.getElementById('dashboard-filter').value;
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            let filteredSessions = sessions;
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // Lógica de Filtragem
+            if (currentFilter === 'today') {
+                filteredSessions = sessions.filter(s => s.date === todayStr);
+            } else if (currentFilter === 'month') {
+                filteredSessions = sessions.filter(s => {
+                    const sDate = new Date(s.date + 'T00:00:00'); // T00 para evitar fuso
+                    return sDate.getMonth() === currentMonth && sDate.getFullYear() === currentYear;
+                });
+            } else if (currentFilter === 'year') {
+                filteredSessions = sessions.filter(s => {
+                    const sDate = new Date(s.date + 'T00:00:00');
+                    return sDate.getFullYear() === currentYear;
+                });
+            }
+
+            // Calculos (usando filteredSessions em vez de sessions)
+            let total = 0, counts = {};
+            filteredSessions.forEach(s => {
+                total += s.duration;
+                const sub = subjects.find(sb => sb.id === s.subjectId);
+                if(sub) {
+                    if(!counts[sub.name]) counts[sub.name] = {val:0, color: sub.color};
+                    counts[sub.name].val += s.duration;
+                }
+            });
+
+            document.getElementById('total-hours').innerText = (total/60).toFixed(1);
+            document.getElementById('total-sessions').innerText = filteredSessions.length;
+            
+            let top = '-', max = 0;
+            for(let k in counts) if(counts[k].val > max) { max = counts[k].val; top = k; }
+            document.getElementById('top-subject').innerText = top;
+
+            const chart = document.getElementById('chart-pie');
+            const legend = document.getElementById('chart-legend');
+            
+            if(total === 0) {
+                chart.style.background = '#f3f4f6';
+                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados neste período.</span>';
                 return;
             }
 
-            studyData.push({
-                id: Date.now(),
-                subject: subject,
-                date: dateVal
-            });
-
-            saveLocal();
-            document.getElementById('customSubject').value = '';
-            renderView();
-        }
-
-        function removeStudy(id) {
-            if(confirm("Deseja remover este estudo?")) {
-                studyData = studyData.filter(item => item.id !== id);
-                saveLocal();
-                renderView();
+            let grad = [], pos = 0;
+            legend.innerHTML = '';
+            for(let k in counts) {
+                const p = (counts[k].val / total) * 100;
+                grad.push(`${counts[k].color} ${pos}% ${pos + p}%`);
+                pos += p;
+                legend.innerHTML += `
+                    <div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm">
+                        <div class="w-3 h-3 rounded-full shadow-sm" style="background:${counts[k].color}"></div>
+                        <span class="text-xs font-bold text-stone-600">${Math.round(p)}%</span>
+                    </div>`;
             }
+            chart.style.background = `conic-gradient(${grad.join(', ')})`;
         }
 
-        function saveLocal() {
-            localStorage.setItem('studyData', JSON.stringify(studyData));
+        // --- 8. AÇÕES ---
+        async function addSubject() {
+            const nameIn = document.getElementById('sub-name');
+            if(!nameIn.value) return alert("Digite o nome!");
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('subjects').add({name: nameIn.value, color: selectedColor, createdAt: Date.now()});
+                nameIn.value = '';
+                alert("Matéria criada!");
+            } catch(e) { alert("Erro: " + e.message); }
         }
 
-        /* --- Navegação e Visualização --- */
-
-        function goToToday() {
-            viewDate = new Date();
-            document.getElementById('studyDate').valueAsDate = viewDate;
-            renderView();
-        }
-
-        function changePeriod(offset) {
-            const view = document.getElementById('viewSelect').value;
+        async function saveSession() {
+            const date = document.getElementById('log-date').value;
+            const dur = document.getElementById('log-duration').value;
             
-            if (view === 'monthly') {
-                viewDate.setMonth(viewDate.getMonth() + offset);
-            } else if (view === 'yearly') {
-                viewDate.setFullYear(viewDate.getFullYear() + offset);
-            } else if (view === 'weekly') {
-                viewDate.setDate(viewDate.getDate() + (offset * 7));
-            }
-            renderView();
-        }
-
-        function changeView() {
-            renderView();
-        }
-
-        function renderView() {
-            const view = document.getElementById('viewSelect').value;
-            const calDiv = document.getElementById('calendar');
-            const yearDiv = document.getElementById('yearContainer');
-            const weekDiv = document.getElementById('weekContainer');
-            const label = document.getElementById('currentPeriodLabel');
-
-            calDiv.style.display = 'none';
-            yearDiv.style.display = 'none';
-            weekDiv.style.display = 'none';
-
-            if (view === 'monthly') {
-                calDiv.style.display = 'grid';
-                label.textContent = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-                renderCalendar();
-            } else if (view === 'yearly') {
-                yearDiv.style.display = 'grid';
-                label.textContent = `Ano de ${viewDate.getFullYear()}`;
-                renderYearly();
-            } else if (view === 'weekly') {
-                weekDiv.style.display = 'flex';
-                // Pega o início e fim da semana para o rótulo
-                const startOfWeek = new Date(viewDate);
-                startOfWeek.setDate(viewDate.getDate() - viewDate.getDay());
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                
-                label.textContent = `Semana: ${startOfWeek.getDate()}/${startOfWeek.getMonth()+1} a ${endOfWeek.getDate()}/${endOfWeek.getMonth()+1}`;
-                renderWeekly();
-            }
-        }
-
-        // --- Renderização Mensal ---
-        function renderCalendar() {
-            const container = document.getElementById('calendar');
-            container.innerHTML = '';
-
-            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-            daysOfWeek.forEach(day => {
-                const div = document.createElement('div');
-                div.className = 'day-header';
-                div.textContent = day;
-                container.appendChild(div);
-            });
-
-            const year = viewDate.getFullYear();
-            const month = viewDate.getMonth();
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            // Células vazias
-            for (let i = 0; i < firstDay; i++) {
-                container.appendChild(document.createElement('div'));
-            }
-
-            // Dias
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                
-                const cell = document.createElement('div');
-                cell.className = 'day-cell';
-                if(dateStr === todayStr) cell.classList.add('is-today');
-                
-                const dayNum = document.createElement('div');
-                dayNum.className = 'day-number';
-                dayNum.textContent = day;
-                cell.appendChild(dayNum);
-
-                const daysStudies = studyData.filter(s => s.date === dateStr);
-                daysStudies.forEach(study => {
-                    const block = document.createElement('div');
-                    block.className = 'study-block';
-                    block.style.backgroundColor = getSubjectColor(study.subject);
-                    block.innerHTML = `<span>${study.subject}</span> <button class="remove-btn" onclick="removeStudy(${study.id})">×</button>`;
-                    cell.appendChild(block);
-                });
-
-                container.appendChild(cell);
-            }
-        }
-
-        // --- Renderização Anual ---
-        function renderYearly() {
-            const container = document.getElementById('yearContainer');
-            container.innerHTML = '';
-            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const year = viewDate.getFullYear();
-
-            months.forEach((mName, index) => {
-                const card = document.createElement('div');
-                card.className = 'month-card';
-                
-                const title = document.createElement('div');
-                title.className = 'month-title';
-                title.textContent = mName;
-                card.appendChild(title);
-
-                const grid = document.createElement('div');
-                grid.className = 'month-grid';
-
-                const daysInM = new Date(year, index + 1, 0).getDate();
-                
-                for(let d=1; d<=daysInM; d++) {
-                    const dStr = `${year}-${String(index + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const hasStudy = studyData.some(s => s.date === dStr);
-                    
-                    const dayEl = document.createElement('div');
-                    dayEl.className = 'month-day ' + (hasStudy ? 'has-study' : '');
-                    dayEl.textContent = d;
-                    grid.appendChild(dayEl);
-                }
-                card.appendChild(grid);
-                container.appendChild(card);
-            });
-        }
-
-        // --- Renderização Semanal ---
-        function renderWeekly() {
-            const container = document.getElementById('weekContainer');
-            container.innerHTML = '';
+            if(!selectedSubjectId) return alert("Escolha a matéria!");
+            if(!dur || dur <= 0) return alert("O tempo deve ser maior que 0!");
             
-            const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            // Calcular o Domingo da semana visualizada
-            const startOfWeek = new Date(viewDate);
-            startOfWeek.setDate(viewDate.getDate() - viewDate.getDay());
-
-            for (let i = 0; i < 7; i++) {
-                // Clona a data para não alterar a referência
-                const currentDay = new Date(startOfWeek);
-                currentDay.setDate(startOfWeek.getDate() + i);
-                
-                const isoDate = currentDay.toISOString().split('T')[0];
-                
-                const col = document.createElement('div');
-                col.className = 'week-day-col';
-                if(isoDate === todayStr) col.style.border = "2px solid var(--primary-color)";
-                
-                const title = document.createElement('div');
-                title.className = 'week-day-title';
-                title.innerHTML = `${daysOfWeek[i]} <br> <small>${currentDay.getDate()}/${currentDay.getMonth()+1}</small>`;
-                col.appendChild(title);
-
-                const daysStudies = studyData.filter(s => s.date === isoDate);
-                daysStudies.forEach(study => {
-                    const block = document.createElement('div');
-                    block.className = 'study-block';
-                    block.style.marginBottom = '5px';
-                    block.style.backgroundColor = getSubjectColor(study.subject);
-                    block.innerHTML = `<span>${study.subject}</span> <button class="remove-btn" onclick="removeStudy(${study.id})">×</button>`;
-                    col.appendChild(block);
-                });
-
-                container.appendChild(col);
-            }
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId: selectedSubjectId, date: date, duration: parseInt(dur), createdAt: Date.now()});
+                switchView('dashboard');
+                // Reseta timer se usado
+                resetTimer();
+            } catch(e) { alert("Erro: " + e.message); }
         }
 
-        // --- Importar/Exportar ---
-        function exportData() {
-            const dataStr = JSON.stringify(studyData);
-            const blob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "meus_estudos.json";
-            a.click();
-        }
+        async function deleteSubject(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('subjects').doc(id).delete(); }
+        async function deleteSession(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete(); }
 
-        function importData(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    studyData = JSON.parse(e.target.result);
-                    saveLocal();
-                    renderView();
-                    alert("Dados carregados!");
-                } catch (err) {
-                    alert("Erro ao ler arquivo.");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        init();
     </script>
 </body>
 </html>
