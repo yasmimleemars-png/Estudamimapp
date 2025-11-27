@@ -1,643 +1,488 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>EstudaMim</title>
-  
-  <!-- Design e ícones -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EstudaMim</title>
+    
+    <!-- 1. Design (Tailwind CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <style>
-    body { margin: 0; padding: 0; font-family: 'Lato', sans-serif; background-color: #FDFBF7; }
-    .hidden { display: none !important; }
-    .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
-    .nav-btn.active { color: #E88D93; background-color: #FFF1F2; font-weight: bold; }
-    .nav-btn.active i { color: #E88D93; }
-    .filter-btn.active { background-color: #292524; color: white; }
-  </style>
+    <!-- 3. Firebase (Banco de Dados) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* --- ESTILOS VISUAIS --- */
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Lato', sans-serif; }
+        body { background-color: #FDFBF7; -webkit-tap-highlight-color: transparent; }
+        
+        /* Ocultar elementos (IMPORTANTE: display none real) */
+        .hidden { display: none !important; }
+        
+        /* Scrollbar Personalizada */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E88D93; border-radius: 10px; }
+        
+        /* Botão de Navegação Ativo */
+        .nav-btn.active { background-color: #FFF1F2; color: #E88D93; font-weight: bold; }
+        .nav-btn.active i { color: #E88D93; }
+        
+        /* Loader */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #E88D93; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
+<body class="font-sans text-stone-800 h-screen flex justify-center bg-stone-100">
 
-  <div class="w-full h-full max-w-md shadow-2xl relative flex flex-col">
+    <div class="w-full max-w-md bg-[#FDFBF7] shadow-2xl relative flex flex-col h-full overflow-hidden">
+        
+        <!-- ========================== -->
+        <!--      TELA DE LOGIN         -->
+        <!-- ========================== -->
+        <div id="auth-screen" class="absolute inset-0 z-[100] bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
+            <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
+            <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
+            <p class="text-stone-400 text-sm mb-10 text-center font-medium">Seus estudos salvos na nuvem.</p>
 
-    <!-- LOGIN / AUTENTICAÇÃO -->
-    <div id="auth-screen" class="absolute inset-0 z-50 bg-[#FDFBF7] flex flex-col items-center justify-center p-8">
-      <div class="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-5xl mb-6">🐶</div>
-      <h1 class="text-5xl font-serif font-black text-stone-800 mb-2 tracking-tight">
-        Estuda<span class="text-rose-400 italic">Mim</span>
-      </h1>
-      <p class="text-stone-400 text-sm mb-10 text-center font-medium">Acompanhe seu progresso.</p>
+            <div class="w-full space-y-4">
+                <input id="email" type="email" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Seu e-mail">
+                <input id="password" type="password" class="w-full p-4 bg-white border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Sua senha">
+                
+                <button onclick="handleLogin()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
+                    <span id="btn-text">Entrar / Criar Conta</span>
+                    <div id="auth-loader" class="loader hidden"></div>
+                </button>
+                <p id="auth-error" class="text-rose-500 text-xs text-center font-bold min-h-[20px] mt-2"></p>
+            </div>
+        </div>
 
-      <div class="w-full space-y-4">
-        <input id="email" type="email" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Seu e-mail" />
-        <input id="password" type="password" class="w-full p-4 bg-white border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-rose-200 shadow-sm text-stone-700" placeholder="Sua senha" />
+        <!-- ========================== -->
+        <!--      APP PRINCIPAL         -->
+        <!-- ========================== -->
+        <div id="app-content" class="hidden flex-col h-full absolute inset-0 z-10 bg-[#FDFBF7]">
+            
+            <!-- Header -->
+            <header class="px-6 pt-10 pb-6 bg-white rounded-b-[40px] shadow-sm z-20 flex justify-between items-center shrink-0">
+                <div>
+                    <h1 class="text-3xl font-serif font-black text-stone-800 tracking-tight">Estuda<span class="text-rose-400 italic">Mim</span></h1>
+                    <p class="text-stone-400 text-xs mt-1">Olá, estudante!</p>
+                </div>
+                <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-stone-50 text-stone-400 hover:bg-rose-100 hover:text-rose-500 transition-colors flex items-center justify-center border border-stone-100">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </header>
 
-        <button id="btn-login" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-xl hover:bg-stone-900 active:scale-95 transition-all flex justify-center items-center mt-4">
-          <span id="btn-text">Entrar / Criar Conta</span>
-          <div id="auth-loader" class="loader hidden ml-2"></div>
-        </button>
+            <!-- Conteúdo com Scroll -->
+            <main class="flex-1 overflow-y-auto p-6 pb-28 custom-scrollbar">
+                
+                <!-- VIEW: DASHBOARD (PADRÃO) -->
+                <div id="view-dashboard" class="space-y-6">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
+                        <h2 class="font-bold text-stone-700 mb-4 text-lg border-l-4 border-rose-300 pl-3">Resumo Geral</h2>
+                        
+                        <!-- Gráfico -->
+                        <div class="h-64 flex items-center justify-center relative my-4">
+                            <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #f3f4f6; position: relative;"></div>
+                            <div class="absolute bg-white rounded-full w-36 h-36 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
+                                <span id="total-hours" class="text-4xl font-black text-stone-800 font-serif">0.0</span>
+                                <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
+                            </div>
+                        </div>
+                        
+                        <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6">
+                            <span class="text-xs text-stone-400 italic">Adicione matérias para começar</span>
+                        </div>
+                    </div>
 
-        <p id="auth-error" class="text-rose-500 text-xs text-center font-bold min-h-[20px] mt-2"></p>
-      </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-rose-50 p-5 rounded-3xl text-rose-800 border border-rose-100 shadow-sm">
+                            <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Maior Foco</p>
+                            <p id="top-subject" class="font-bold text-lg leading-tight mt-1">-</p>
+                        </div>
+                        <div class="bg-sky-50 p-5 rounded-3xl text-sky-800 border border-sky-100 shadow-sm">
+                            <p class="text-xs font-bold opacity-60 uppercase tracking-wide">Sessões</p>
+                            <p id="total-sessions" class="font-bold text-lg mt-1">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: MATÉRIAS -->
+                <div id="view-subjects" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-50">
+                        <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Matéria</h2>
+                        <input id="sub-name" class="w-full p-4 bg-stone-50 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Nome da disciplina...">
+                        
+                        <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Cor</div>
+                        <div id="color-picker" class="flex gap-3 mb-6 overflow-x-auto pb-2 px-1"></div>
+                        
+                        <button onclick="addSubject()" class="w-full py-4 bg-stone-800 text-white rounded-2xl font-bold shadow-lg shadow-stone-200 hover:bg-stone-900 active:scale-95 transition-all">
+                            Adicionar
+                        </button>
+                    </div>
+
+                    <div class="pl-2">
+                        <h3 class="text-xs font-bold text-stone-400 uppercase mb-3">Suas Matérias</h3>
+                        <div id="subjects-list" class="space-y-3">
+                            <p class="text-stone-300 text-sm italic">Nenhuma matéria cadastrada.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: REGISTRO (LOG) -->
+                <div id="view-log" class="hidden h-full flex flex-col">
+                    <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
+                        <h2 class="text-center font-serif font-bold text-2xl mb-8 text-stone-800">Registrar Estudo</h2>
+                        
+                        <div class="space-y-6 flex-1">
+                            <div>
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label>
+                                <input id="log-date" type="date" class="w-full p-4 bg-stone-50 rounded-2xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200">
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
+                                <div id="log-subjects-grid" class="grid grid-cols-2 gap-3 mt-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                    <p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Tempo (Minutos)</label>
+                                <div class="relative">
+                                    <input id="log-duration" type="number" class="w-full p-4 pl-12 bg-stone-50 rounded-2xl text-2xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0">
+                                    <i class="fa-regular fa-clock absolute left-5 top-[30px] text-stone-400 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="saveSession()" class="w-full py-4 bg-rose-400 text-white rounded-2xl font-bold text-lg mt-6 shadow-xl shadow-rose-200 hover:bg-rose-500 active:scale-95 transition-all">
+                            Salvar Sessão
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIEW: HISTÓRICO -->
+                <div id="view-history" class="space-y-4 hidden">
+                    <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
+                        <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
+                        <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0 regs</span>
+                    </div>
+                    <div id="history-list" class="space-y-3 pb-20">
+                        <p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Navegação Inferior -->
+            <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-30">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
+                    <i class="fa-solid fa-chart-pie text-xl mb-1 transition-colors"></i>
+                    <span class="text-[10px] transition-colors">Resumo</span>
+                </button>
+                
+                <button onclick="switchView('subjects')" id="nav-subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
+                    <i class="fa-solid fa-book text-xl mb-1 transition-colors"></i>
+                    <span class="text-[10px] transition-colors">Matérias</span>
+                </button>
+                
+                <button onclick="prepareLog()" class="bg-stone-800 text-white w-14 h-14 rounded-full flex items-center justify-center -mt-10 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </button>
+                
+                <button onclick="switchView('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center p-2 w-16 rounded-xl transition-all text-stone-400">
+                    <i class="fa-solid fa-list-ul text-xl mb-1 transition-colors"></i>
+                    <span class="text-[10px] transition-colors">Histórico</span>
+                </button>
+                
+                <div class="w-2 opacity-0"></div> <!-- Espaçador -->
+            </nav>
+
+        </div>
     </div>
 
-    <!-- APP PRINCIPAL -->
-    <div id="app-content" class="hidden flex-col h-full w-full bg-[#FDFBF7] relative z-10">
-
-      <!-- Header -->
-      <header class="px-6 pt-10 pb-4 bg-white/95 backdrop-blur-sm border-b border-stone-50 z-20 flex justify-between items-center shrink-0">
-        <div>
-          <h1 class="text-2xl font-serif font-black text-stone-800 tracking-tight">
-            Estuda<span class="text-rose-400 italic">Mim</span>
-          </h1>
-          <p class="text-stone-400 text-xs mt-0.5">Foco na aprovação!</p>
-        </div>
-        <button id="btn-logout" class="w-9 h-9 rounded-full bg-stone-100 text-stone-400 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center border border-stone-100">
-          <i class="fa-solid fa-power-off text-xs"></i>
-        </button>
-      </header>
-
-      <!-- Conteúdo principal -->
-      <main class="flex-1 overflow-y-auto p-6 pb-32 custom-scrollbar relative w-full">
-
-        <!-- DASHBOARD -->
-        <div id="view-dashboard" class="space-y-6 pb-10">
-          <div class="bg-white p-5 rounded-3xl shadow-sm border border-stone-50">
-            <div class="flex flex-col items-center mb-4">
-              <h2 class="font-bold text-stone-700 text-lg mb-3 self-start border-l-4 border-rose-300 pl-3">Desempenho</h2>
-              <div class="flex bg-stone-100 p-1 rounded-full gap-1 w-full justify-between sm:justify-center">
-                <button data-filter="day" class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase">Hoje</button>
-                <button data-filter="week" class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase">Sem</button>
-                <button data-filter="month" class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase">Mês</button>
-                <button data-filter="all" class="filter-btn active px-3 py-1.5 rounded-full text-[10px] font-bold text-stone-400 flex-1 text-center uppercase bg-stone-800 text-white">Geral</button>
-              </div>
-            </div>
-
-            <div class="h-64 flex items-center justify-center relative my-4">
-              <div id="chart-pie" style="width: 220px; height: 220px; border-radius: 50%; background: #f3f4f6; position: relative;"></div>
-              <div class="absolute bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-inner">
-                <span id="total-hours" class="text-4xl font-black text-stone-800 font-serif">0.0</span>
-                <span class="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Horas</span>
-              </div>
-            </div>
-            <div id="chart-legend" class="flex flex-wrap justify-center gap-2 mt-6 min-h-[20px]"></div>
-          </div>
-        </div>
-
-        <!-- MATÉRIAS -->
-        <div id="view-subjects" class="space-y-6 hidden pb-10">
-          <div class="bg-white p-5 rounded-3xl shadow-sm border border-stone-50">
-            <h2 class="font-bold text-stone-800 text-lg mb-4 border-l-4 border-sky-300 pl-3">Nova Disciplina</h2>
-            <input id="sub-name" class="w-full p-3 bg-stone-50 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-rose-200 transition-all text-stone-700" placeholder="Ex: Português..." />
-            <div class="mb-2 text-xs font-bold text-stone-400 uppercase ml-1">Cor</div>
-            <div id="color-picker" class="flex gap-3 mb-4 overflow-x-auto pb-2 px-1 custom-scrollbar"></div>
-            <button id="btn-add-subject" class="w-full py-3 bg-stone-800 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-all">Adicionar</button>
-          </div>
-          <div class="pl-1">
-            <h3 class="text-xs font-bold text-stone-400 uppercase mb-3 ml-1">Suas Matérias</h3>
-            <div id="subjects-list" class="space-y-3"></div>
-
-            <div class="mt-8 pt-6 border-t border-stone-200 pb-10">
-              <button id="btn-reset-concurso" class="w-full py-3 border-2 border-rose-200 text-rose-500 rounded-xl font-bold text-xs hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
-                <i class="fa-solid fa-rotate-right"></i> Restaurar Padrão Concurso
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- LOG (manual / cronômetro) -->
-        <div id="view-log" class="hidden h-full flex flex-col pb-10">
-          <div class="bg-white p-5 rounded-3xl shadow-lg border border-stone-50 flex-1 flex flex-col">
-            <!-- abas manual / timer -->
-            <div class="flex bg-stone-100 p-1 rounded-xl mb-6">
-              <button id="tab-manual" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-stone-800 transition-all">Manual</button>
-              <button id="tab-timer" class="flex-1 py-2 rounded-lg text-xs font-bold text-stone-400 hover:text-stone-600 transition-all">Cronômetro</button>
-            </div>
-
-            <!-- manual -->
-            <div id="mode-manual" class="space-y-5 flex-1">
-              <div>
-                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Data</label>
-                <input id="log-date" type="date" class="w-full p-3 bg-stone-50 rounded-xl mt-1 text-stone-700 font-medium outline-none focus:ring-2 focus:ring-sky-200" />
-              </div>
-              <div>
-                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Disciplina</label>
-                <div id="log-subjects-grid" class="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto custom-scrollbar"></div>
-              </div>
-              <div>
-                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Minutos</label>
-                <input id="log-duration" type="number" class="w-full p-3 bg-stone-50 rounded-xl text-xl font-bold mt-1 text-stone-800 outline-none focus:ring-2 focus:ring-sky-200" placeholder="0" />
-              </div>
-              <button id="btn-save-session" class="w-full py-4 bg-rose-400 text-white rounded-xl font-bold text-lg mt-2 shadow-xl active:scale-95 transition-all">Salvar</button>
-            </div>
-
-            <!-- timer -->
-            <div id="mode-timer" class="hidden flex-col items-center flex-1 justify-between py-2">
-              <div class="w-full text-left mb-2">
-                <label class="text-xs font-bold text-stone-400 uppercase ml-1">Matéria</label>
-                <div id="timer-subjects-grid" class="grid grid-cols-2 gap-2 mt-1 max-h-32 overflow-y-auto custom-scrollbar"></div>
-              </div>
-              <div class="w-48 h-48 rounded-full border-[6px] border-rose-100 flex flex-col items-center justify-center bg-stone-50 shadow-inner relative my-4">
-                <span id="timer-display" class="text-4xl font-black text-stone-800 font-mono tracking-tighter">00:00</span>
-                <div id="timer-dot" class="w-2 h-2 bg-rose-500 rounded-full absolute top-4 animate-pulse hidden"></div>
-              </div>
-              <div class="flex gap-3 w-full">
-                <button id="btn-timer-toggle" class="flex-1 py-3 bg-stone-800 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Iniciar</button>
-                <button id="btn-timer-reset" class="w-14 py-3 bg-stone-200 text-stone-500 rounded-xl font-bold hover:bg-stone-300 transition-all flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></button>
-              </div>
-              <button id="btn-timer-save" disabled class="w-full py-3 bg-rose-400 text-white rounded-xl font-bold mt-3 shadow-md disabled:opacity-50 disabled:shadow-none transition-all">Salvar</button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- HISTÓRICO -->
-        <div id="view-history" class="space-y-4 hidden pb-10">
-          <div class="bg-white px-5 py-3 rounded-3xl shadow-sm border border-stone-50 sticky top-0 z-10 flex justify-between items-center">
-            <h2 class="font-bold text-stone-800 text-lg border-l-4 border-stone-300 pl-3">Histórico</h2>
-            <span id="history-count" class="text-xs font-bold bg-stone-100 px-2 py-1 rounded-lg text-stone-500">0</span>
-          </div>
-          <div id="history-list" class="space-y-3 pb-20"></div>
-        </div>
-
-      </main>
-
-      <!-- MENU INFERIOR -->
-      <nav class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex justify-around items-center border border-white/50 z-50">
-        <button data-view="dashboard" class="nav-btn active flex flex-col items-center justify-center p-2 w-14 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-chart-pie text-xl mb-1"></i><span class="text-[9px]">Resumo</span></button>
-        <button data-view="subjects" class="nav-btn flex flex-col items-center justify-center p-2 w-14 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-book text-xl mb-1"></i><span class="text-[9px]">Matérias</span></button>
-        <button id="btn-add-center" class="bg-stone-800 text-white w-12 h-12 rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-stone-400 hover:scale-105 active:scale-95 transition-all border-4 border-[#FDFBF7]"><i class="fa-solid fa-plus text-xl"></i></button>
-        <button data-view="history" class="nav-btn flex flex-col items-center justify-center p-2 w-14 rounded-xl transition-all text-stone-400"><i class="fa-solid fa-list-ul text-xl mb-1"></i><span class="text-[9px]">Histórico</span></button>
-        <div class="w-2 opacity-0"></div>
-      </nav>
-
-    </div> <!-- fim app-content -->
-
-  </div>
-
-  <!-- SCRIPT JS -->
-  <script type="module">
-  document.addEventListener("DOMContentLoaded", () => {
-    // --- IMPORTS FIREBASE (compat) ---
-    // Já está incluído via <script src="...-compat.js"> no head
-
-    // Config Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
-      authDomain: "estudamim-e5b35.firebaseapp.com",
-      projectId: "estudamim-e5b35",
-      storageBucket: "estudamim-e5b35.appspot.com",
-      messagingSenderId: "593504107114",
-      appId: "1:593504107114:web:0ff19a1fb6938da0d3e813"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    let currentUser = null;
-    let subjects = [], sessions = [];
-    let selectedColor = '#E88D93';
-    let selectedSubjectId = null;
-    let dashboardFilter = 'all';
-    let timerInterval = null, timerSeconds = 0, isTimerRunning = false;
-    const COLORS = ['#E88D93', '#3B7CA8', '#1E40AF', '#D4A373', '#8D6E63', '#5D4037', '#A8D5BA', '#5F6F52', '#93C5FD', '#C084FC', '#FCD34D', '#FCA5A5'];
-    const DEFAULT_SUBJECTS = [
-      { name: 'Língua Portuguesa', color: '#E88D93' },
-      { name: 'Raciocínio Lógico', color: '#3B7CA8' },
-      { name: 'Atualidades', color: '#FCD34D' },
-      { name: 'Informática', color: '#1E40AF' },
-      { name: 'Direito Administrativo', color: '#5D4037' },
-      { name: 'Direito Penal', color: '#5F6F52' },
-      { name: 'Direito Constitucional', color: '#D4A373' },
-      { name: 'Arquivologia', color: '#8D6E63' },
-      { name: 'Simulados', color: '#C084FC' }
-    ];
-
-    // Elementos
-    const authScreen = document.getElementById('auth-screen');
-    const appContent = document.getElementById('app-content');
-    const btnLogin = document.getElementById('btn-login');
-    const inputEmail = document.getElementById('email');
-    const inputPassword = document.getElementById('password');
-    const btnLogout = document.getElementById('btn-logout');
-
-    // LOGIN / CADASTRO
-    btnLogin.onclick = async () => {
-      const email = inputEmail.value.trim();
-      const pass = inputPassword.value;
-      if (!email || !pass) return alert("Preencha e-mail e senha!");
-
-      try {
-        await auth.signInWithEmailAndPassword(email, pass);
-      } catch (e) {
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
-          try {
-            await auth.createUserWithEmailAndPassword(email, pass);
-          } catch (err2) {
-            return alert("Erro ao criar conta: " + err2.message);
-          }
-        } else {
-          return alert("Erro no login: " + e.message);
-        }
-      }
-    };
-
-    btnLogout.onclick = () => auth.signOut();
-
-    // Observa autenticação
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        authScreen.classList.add('hidden');
-        appContent.classList.remove('hidden');
-        startListeners();
-      } else {
-        currentUser = null;
-        authScreen.classList.remove('hidden');
-        appContent.classList.add('hidden');
-      }
-    });
-
-    // Listeners Firebase
-    function startListeners() {
-      if (!currentUser) return;
-
-      db.collection('users').doc(currentUser.uid).collection('subjects').orderBy('createdAt', 'asc')
-        .onSnapshot(snap => {
-          subjects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          renderAll();
-        });
-
-      db.collection('users').doc(currentUser.uid).collection('sessions').orderBy('createdAt', 'desc')
-        .onSnapshot(snap => {
-          sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          renderAll();
-        });
-    }
-
-    // Renderizações gerais
-    function renderAll() {
-      renderSubjects();
-      renderSubjectsGrid();
-      renderDashboard();
-      renderHistory();
-      renderTimerGrid();
-    }
-
-    // Navegação de views
-    function switchView(v) {
-      ['dashboard', 'subjects', 'log', 'history'].forEach(x => {
-        const el = document.getElementById(`view-${x}`);
-        if(el) el.classList.add('hidden');
-      });
-      const btns = document.querySelectorAll('.nav-btn');
-      btns.forEach(b => b.classList.remove('active'));
-
-      const target = document.getElementById(`view-${v}`);
-      if (target) target.classList.remove('hidden');
-      const nav = document.querySelector(`button[data-view="${v}"]`);
-      if (nav) nav.classList.add('active');
-
-      if (v === 'dashboard') renderDashboard();
-    }
-
-    document.querySelectorAll('button[data-view]').forEach(b => {
-      b.onclick = () => switchView(b.getAttribute('data-view'));
-    });
-
-    document.getElementById('btn-add-center').onclick = () => {
-      switchView('log');
-      toggleLogMode('manual');
-      prepareLog();
-    };
-
-    document.querySelectorAll('.filter-btn').forEach(b => {
-      b.onclick = () => {
-        dashboardFilter = b.getAttribute('data-filter');
-        document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active', 'bg-stone-800', 'text-white'));
-        b.classList.add('active', 'bg-stone-800', 'text-white');
-        renderDashboard();
-      };
-    });
-
-    // Subjects render / CRUD
-    function renderSubjects() {
-      const list = document.getElementById('subjects-list');
-      if (!list) return;
-      if (!subjects.length) {
-        list.innerHTML = `<p class="text-center text-stone-300 mt-4 text-xs">Lista vazia.</p>`;
-      } else {
-        list.innerHTML = subjects.map(s => `
-          <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
-              <span class="font-bold text-stone-700 text-lg">${s.name}</span>
-            </div>
-            <button data-id="${s.id}" class="btn-delete-sub w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
-          </div>`).join('');
-
-        list.querySelectorAll('.btn-delete-sub').forEach(btn => {
-          btn.onclick = () => deleteSubject(btn.getAttribute('data-id'));
-        });
-      }
-
-      const cp = document.getElementById('color-picker');
-      if (!cp) return;
-      cp.innerHTML = COLORS.map(c =>
-        `<button data-color="${c}" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c?'border-stone-800 scale-110 shadow-md':'border-transparent'}" style="background-color:${c}"></button>`
-      ).join('');
-
-      cp.querySelectorAll('.color-btn').forEach(b => {
-        b.onclick = () => {
-          selectedColor = b.getAttribute('data-color');
-          renderSubjects();
+    <!-- ========================== -->
+    <!--     LÓGICA JAVASCRIPT      -->
+    <!-- ========================== -->
+    <script>
+        // --- 1. CONFIGURAÇÃO (Já incluída) ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyB6lfeLTiba9MJEXBx3b0skdqasR6YbtCQ",
+          authDomain: "estudamim-e5b35.firebaseapp.com",
+          projectId: "estudamim-e5b35",
+          storageBucket: "estudamim-e5b35.firebasestorage.app",
+          messagingSenderId: "593504107114",
+          appId: "1:593504107114:web:0ff19a1fb6938da0d3e813"
         };
-      });
-    }
 
-    const btnAddSubj = document.getElementById('btn-add-subject');
-    if (btnAddSubj) btnAddSubj.onclick = async () => {
-      const n = document.getElementById('sub-name');
-      if (!n || !n.value.trim()) return alert("Digite o nome da matéria!");
-      try {
-        await db.collection('users').doc(currentUser.uid).collection('subjects')
-          .add({ name: n.value.trim(), color: selectedColor, createdAt: Date.now() });
-        n.value = '';
-      } catch (e) {
-        alert("Erro ao criar matéria: " + e.message);
-      }
-    };
-
-    async function deleteSubject(id) {
-      if (!id) return;
-      if (!confirm("Apagar esta matéria?")) return;
-      try {
-        await db.collection('users').doc(currentUser.uid)
-          .collection('subjects').doc(id).delete();
-      } catch (e) {
-        alert("Erro ao apagar matéria: " + e.message);
-      }
-    }
-
-    const btnReset = document.getElementById('btn-reset-concurso');
-    if (btnReset) btnReset.onclick = async () => {
-      if (!confirm("Restaurar padrão? Isso apagará suas matérias atuais.")) return;
-      try {
-        const snap = await db.collection('users').doc(currentUser.uid).collection('subjects').get();
-        const batch = db.batch();
-        snap.docs.forEach(d => batch.delete(d.ref));
-        await batch.commit();
-
-        const batch2 = db.batch();
-        DEFAULT_SUBJECTS.forEach(s => {
-          const ref = db.collection('users').doc(currentUser.uid).collection('subjects').doc();
-          batch2.set(ref, { name: s.name, color: s.color, createdAt: Date.now() });
-        });
-        await batch2.commit();
-        alert("Padrão restaurado!");
-        renderAll();
-      } catch (e) {
-        alert("Erro ao restaurar padrão: " + e.message);
-      }
-    };
-
-    // Dashboard
-    function renderDashboard() {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      let filtered = sessions.filter(s => {
-        if (!s.date) return false;
-        const parts = s.date.split('-');
-        const sTime = new Date(parts[0], parts[1] - 1, parts[2]).getTime();
-        if (dashboardFilter === 'day') return sTime === todayStart;
-        if (dashboardFilter === 'week') return sTime >= (todayStart - 7*86400000);
-        if (dashboardFilter === 'month') return new Date(sTime).getMonth() === now.getMonth();
-        return true;
-      });
-
-      let total = 0, counts = {};
-      filtered.forEach(s => {
-        total += s.duration;
-        const sub = subjects.find(sb => sb.id === s.subjectId);
-        if (sub) {
-          if (!counts[sub.name]) counts[sub.name] = { val: 0, color: sub.color || '#ccc' };
-          counts[sub.name].val += s.duration;
+        // --- 2. INICIALIZAÇÃO ---
+        let auth, db, currentUser = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (e) {
+            console.error("Erro Firebase:", e);
+            alert("Erro de conexão. Recarregue a página.");
         }
-      });
 
-      const totalHoursEl = document.getElementById('total-hours');
-      if (totalHoursEl) totalHoursEl.innerText = (total / 60).toFixed(1);
+        // --- 3. VARIÁVEIS DE ESTADO ---
+        let subjects = [];
+        let sessions = [];
+        let selectedColor = '#E88D93';
+        let selectedSubjectId = null;
+        const COLORS = ['#E88D93', '#3B7CA8', '#D4A373', '#8D6E63', '#A8D5BA', '#93C5FD', '#FCA5A5'];
 
-      const c = document.getElementById('chart-pie');
-      const l = document.getElementById('chart-legend');
-      if (!c || !l) return;
+        // --- 4. SISTEMA DE LOGIN (Autenticação) ---
+        if(auth) {
+            auth.onAuthStateChanged((user) => {
+                const authScreen = document.getElementById('auth-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (user) {
+                    // LOGADO: Força o app a aparecer e esconde o login
+                    currentUser = user;
+                    authScreen.classList.add('hidden');
+                    appContent.classList.remove('hidden');
+                    appContent.classList.add('flex');
+                    
+                    // IMPORTANTE: Força a view inicial a aparecer
+                    switchView('dashboard');
+                    startListeners();
+                } else {
+                    // DESLOGADO
+                    currentUser = null;
+                    authScreen.classList.remove('hidden');
+                    appContent.classList.add('hidden');
+                    appContent.classList.remove('flex');
+                }
+            });
+        }
 
-      if (total === 0) {
-        c.style.background = '#f3f4f6';
-        l.innerHTML = '<div class="text-xs text-stone-400 italic">Sem dados neste período.</div>';
-        return;
-      }
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('auth-error');
+            const loader = document.getElementById('auth-loader');
+            const btnText = document.getElementById('btn-text');
 
-      let g = [], p = 0;
-      l.innerHTML = '';
-      for (let k in counts) {
-        const pc = (counts[k].val / total) * 100;
-        g.push(`${counts[k].color} ${p}% ${p + pc}%`);
-        p += pc;
-        l.innerHTML += `
-          <div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm mb-1">
-            <div class="w-3 h-3 rounded-full" style="background:${counts[k].color}"></div>
-            <span class="text-xs font-bold text-stone-600">${Math.round(pc)}%</span>
-          </div>`;
-      }
-      c.style.background = `conic-gradient(${g.join(', ')})`;
-    }
+            if (!email || !pass) { errorMsg.innerText = "Preencha tudo!"; return; }
+            
+            errorMsg.innerText = "";
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
 
-    // LOG & CRONÔMETRO
-    function toggleLogMode(mode) {
-      const mm = document.getElementById('mode-manual');
-      const mt = document.getElementById('mode-timer');
-      if (mm && mt) {
-        mm.classList.toggle('hidden', mode !== 'manual');
-        mt.classList.toggle('hidden', mode !== 'timer');
-      }
-      const mB = document.getElementById('tab-manual');
-      const tB = document.getElementById('tab-timer');
-      if (mode === 'manual') {
-        if (mB) mB.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-stone-800 transition-all";
-        if (tB) tB.className = "flex-1 py-2 rounded-lg text-xs font-bold text-stone-400 hover:text-stone-600 transition-all";
-      } else {
-        if (mB) mB.className = "flex-1 py-2 rounded-lg text-xs font-bold text-stone-400 hover:text-stone-600 transition-all";
-        if (tB) tB.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-stone-800 transition-all";
-      }
-    }
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (error) {
+                const loginErrors = ['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-login-credentials', 'auth/invalid-credential'];
+                if (loginErrors.includes(error.code)) {
+                    try {
+                        await auth.createUserWithEmailAndPassword(email, pass);
+                        // Cria dados iniciais
+                        await db.collection('users').doc(auth.currentUser.uid).collection('subjects').add({name: 'Matemática', color: '#3B7CA8', createdAt: Date.now()});
+                    } catch (createError) {
+                        errorMsg.innerText = (createError.code === 'auth/weak-password') ? "Senha muito fraca (min 6)." : "Erro: " + createError.message;
+                    }
+                } else {
+                    errorMsg.innerText = "Erro: " + error.message;
+                }
+            }
+            loader.classList.add('hidden');
+            btnText.classList.remove('hidden');
+        }
 
-    function prepareLog() {
-      switchView('log');
-      toggleLogMode('manual');
-      const ld = document.getElementById('log-date');
-      if (ld) ld.value = new Date().toISOString().split('T')[0];
-      const dur = document.getElementById('log-duration');
-      if (dur) dur.value = '';
-      selectedSubjectId = null;
-      renderSubjectsGrid();
-      renderTimerGrid();
-    }
+        function handleLogout() { auth.signOut(); }
 
-    function renderSubjectsGrid() {
-      const g = document.getElementById('log-subjects-grid');
-      if (!g) return;
-      if (!subjects.length) {
-        g.innerHTML = '<div class="col-span-2 p-4 bg-rose-50 rounded-xl text-center text-rose-500 font-bold text-xs">Nenhuma matéria! Crie uma primeiro.</div>';
-        return;
-      }
-      g.innerHTML = subjects.map(s =>
-        `<button data-id="${s.id}" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${s.color}"></span><span class="font-bold text-sm text-stone-600">${s.name}</span></button>`
-      ).join('');
-      g.querySelectorAll('.sub-grid-btn').forEach(b => {
-        b.onclick = () => selectLogSubject(b.getAttribute('data-id'), b);
-      });
-    }
+        // --- 5. BANCO DE DADOS (Real-time) ---
+        function startListeners() {
+            db.collection('users').doc(currentUser.uid).collection('subjects').orderBy('createdAt', 'asc').onSnapshot(snap => {
+                subjects = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderSubjects(); renderSubjectsGrid(); renderDashboard();
+            });
 
-    function renderTimerGrid() {
-      const g = document.getElementById('timer-subjects-grid');
-      if (!g) return;
-      if (!subjects.length) {
-        g.innerHTML = '<div class="col-span-2 text-center text-xs text-stone-400">Crie matérias primeiro.</div>';
-        return;
-      }
-      g.innerHTML = subjects.map(s =>
-        `<button data-id="${s.id}" class="sub-grid-btn p-2 rounded-xl border-2 text-left bg-white border-stone-100 text-stone-500 w-full flex items-center gap-2 text-xs h-10"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${s.color}"></span><span class="font-bold truncate">${s.name}</span></button>`
-      ).join('');
-      g.querySelectorAll('.sub-grid-btn').forEach(b => {
-        b.onclick = () => selectLogSubject(b.getAttribute('data-id'), b);
-      });
-    }
+            db.collection('users').doc(currentUser.uid).collection('sessions').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                sessions = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderHistory(); renderDashboard();
+            });
+        }
 
-    function selectLogSubject(id, btn) {
-      selectedSubjectId = id;
-      document.querySelectorAll('.sub-grid-btn').forEach(b => {
-        b.classList = 'sub-grid-btn p-2 md:p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 w-full flex items-center gap-2';
-      });
-      if (btn) btn.classList = 'sub-grid-btn p-2 md:p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 w-full flex items-center gap-2';
-    }
+        // --- 6. NAVEGAÇÃO ROBUSTA ---
+        function switchView(viewName) {
+            // Esconde todas as divs de view
+            ['dashboard', 'subjects', 'log', 'history'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if(el) el.classList.add('hidden');
+                
+                const btn = document.getElementById(`nav-${v}`);
+                if(btn) btn.classList.remove('active');
+            });
+            
+            // Mostra a view específica
+            const targetEl = document.getElementById(`view-${viewName}`);
+            if(targetEl) targetEl.classList.remove('hidden');
+            
+            const targetBtn = document.getElementById(`nav-${viewName}`);
+            if(targetBtn) targetBtn.classList.add('active');
+            
+            if(viewName === 'dashboard') renderDashboard();
+        }
 
-    const btnTimerToggle = document.getElementById('btn-timer-toggle');
-    if (btnTimerToggle) btnTimerToggle.onclick = () => {
-      if (isTimerRunning) {
-        clearInterval(timerInterval);
-        isTimerRunning = false;
-        btnTimerToggle.innerHTML = '<i class="fa-solid fa-play"></i> Iniciar';
-        document.getElementById('timer-dot').classList.add('hidden');
-        if (timerSeconds > 0 && selectedSubjectId) document.getElementById('btn-timer-save').disabled = false;
-      } else {
-        if (!selectedSubjectId) return alert("Escolha a matéria antes de iniciar!");
-        isTimerRunning = true;
-        document.getElementById('btn-timer-save').disabled = true;
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          const h = Math.floor(timerSeconds/3600);
-          const m = Math.floor((timerSeconds%3600)/60);
-          const s = timerSeconds % 60;
-          document.getElementById('timer-display').innerText = `${h>0'h'+h+':' : ''}${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
-        }, 1000);
-        btnTimerToggle.innerHTML = '<i class="fa-solid fa-pause"></i> Pausar';
-        document.getElementById('timer-dot').classList.remove('hidden');
-      }
-    };
+        // --- 7. RENDERIZAÇÃO (Desenhar na tela) ---
+        
+        function renderSubjects() {
+            const list = document.getElementById('subjects-list');
+            const picker = document.getElementById('color-picker');
+            
+            if(subjects.length === 0) {
+                list.innerHTML = '<p class="text-stone-300 text-sm italic text-center mt-4">Nenhuma matéria cadastrada.</p>';
+            } else {
+                list.innerHTML = subjects.map(s => `
+                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-stone-50 shadow-sm group hover:border-rose-100 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md" style="background:${s.color}">${s.name.charAt(0).toUpperCase()}</div>
+                            <span class="font-bold text-stone-700 text-lg">${s.name}</span>
+                        </div>
+                        <button onclick="deleteSubject('${s.id}')" class="w-8 h-8 rounded-lg text-stone-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            }
 
-    const btnTimerReset = document.getElementById('btn-timer-reset');
-    if (btnTimerReset) btnTimerReset.onclick = () => {
-      if (isTimerRunning) btnTimerToggle.onclick();
-      timerSeconds = 0;
-      document.getElementById('timer-display').innerText = "00:00";
-      document.getElementById('btn-timer-save').disabled = true;
-    };
+            picker.innerHTML = COLORS.map(c => `
+                <button onclick="selectedColor='${c}'; renderSubjects()" class="color-btn w-10 h-10 rounded-full shrink-0 border-4 transition-transform ${selectedColor===c ? 'border-stone-800 scale-110 shadow-md' : 'border-transparent'}" style="background-color:${c}"></button>
+            `).join('');
+        }
 
-    const btnTimerSave = document.getElementById('btn-timer-save');
-    if (btnTimerSave) btnTimerSave.onclick = async () => {
-      if (!selectedSubjectId) return alert("Selecione uma matéria.");
-      const m = Math.ceil(timerSeconds/60);
-      if (m === 0) return alert("Tempo muito curto para registrar.");
-      try {
-        await db.collection('users').doc(currentUser.uid).collection('sessions').add({
-          subjectId: selectedSubjectId,
-          date: new Date().toISOString().split('T')[0],
-          duration: m,
-          createdAt: Date.now()
-        });
-        btnTimerReset.onclick();
-        switchView('dashboard');
-        dashboardFilter = 'day';
-        renderDashboard();
-      } catch (e) {
-        alert("Erro ao salvar sessão: " + e.message);
-      }
-    };
+        function prepareLog() {
+            switchView('log');
+            document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('log-duration').value = '';
+            selectedSubjectId = null;
+            renderSubjectsGrid();
+        }
 
-    const btnSaveSession = document.getElementById('btn-save-session');
-    if (btnSaveSession) btnSaveSession.onclick = async () => {
-      const d = document.getElementById('log-date')?.value;
-      const t = document.getElementById('log-duration')?.value;
-      if (!selectedSubjectId || !t) return alert("Preencha matéria e duração!");
-      try {
-        await db.collection('users').doc(currentUser.uid).collection('sessions').add({
-          subjectId: selectedSubjectId,
-          date: d,
-          duration: parseInt(t),
-          createdAt: Date.now()
-        });
-        switchView('dashboard');
-      } catch (e) {
-        alert("Erro ao salvar sessão: " + e.message);
-      }
-    };
+        function renderSubjectsGrid() {
+            const grid = document.getElementById('log-subjects-grid');
+            if(subjects.length === 0) {
+                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-rose-500 font-bold p-4 bg-rose-50 rounded-xl">Crie matérias primeiro!</p>';
+                return;
+            }
+            grid.innerHTML = subjects.map(s => `
+                <button onclick="selectLogSubject('${s.id}', this)" class="sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 hover:opacity-100 transition-all w-full flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full" style="background:${s.color}"></span>
+                    <span class="font-bold text-sm text-stone-600">${s.name}</span>
+                </button>
+            `).join('');
+        }
 
-    async function deleteSession(id) {
-      if (!id) return;
-      if (!confirm("Apagar registro?")) return;
-      await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete();
-    }
+        function selectLogSubject(id, btn) {
+            selectedSubjectId = id;
+            document.querySelectorAll('.sub-grid-btn').forEach(b => {
+                b.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-stone-50 border-transparent text-stone-400 opacity-60 transition-all w-full flex items-center gap-2';
+            });
+            btn.className = 'sub-grid-btn p-3 rounded-xl border-2 text-left bg-sky-50 border-sky-400 text-sky-800 shadow-md scale-105 transition-all w-full flex items-center gap-2';
+        }
 
-    function renderHistory() {
-      const list = document.getElementById('history-list');
-      const count = document.getElementById('history-count');
-      if (!list || !count) return;
-      count.innerText = `${sessions.length}`;
-      if (!sessions.length) {
-        list.innerHTML = '<p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>';
-        return;
-      }
-      list.innerHTML = sessions.map(s => {
-        const sub = subjects.find(sb => sb.id === s.subjectId) || { name: 'Arquivado', color: '#ccc' };
-        const dateStr = s.date ? s.date.split('-').reverse().join('/') : '';
-        return `
-          <div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center">
-            <div class="flex gap-3 items-center">
-              <div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div>
-              <div>
-                <h4 class="font-bold text-stone-700">${sub.name}</h4>
-                <p class="text-xs text-stone-400 mt-1">${dateStr}</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span>
-              <button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold uppercase mt-1">Excluir</button>
-            </div>
-          </div>`;
-      }).join('');
-    }
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            document.getElementById('history-count').innerText = `${sessions.length} regs`;
+            
+            if(sessions.length === 0) { list.innerHTML = '<p class="text-center text-stone-300 mt-10 italic">Histórico vazio</p>'; return; }
+            
+            list.innerHTML = sessions.map(s => {
+                const sub = subjects.find(sb => sb.id === s.subjectId) || {name: 'Arquivado', color: '#ccc'};
+                return `
+                    <div class="bg-white p-4 rounded-2xl border border-stone-50 shadow-sm flex justify-between items-center">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-2 h-10 rounded-full" style="background-color:${sub.color}"></div>
+                            <div>
+                                <h4 class="font-bold text-stone-700">${sub.name}</h4>
+                                <p class="text-xs text-stone-400 mt-1"><i class="fa-regular fa-calendar"></i> ${s.date.split('-').reverse().join('/')}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block font-black text-stone-700 text-lg">${s.duration}<span class="text-xs font-normal text-stone-400 ml-1">min</span></span>
+                            <button onclick="deleteSession('${s.id}')" class="text-[10px] text-rose-400 font-bold hover:text-rose-600 uppercase mt-1">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
-    // Inicial
-    switchView('dashboard');
-  });
-  </script>
+        function renderDashboard() {
+            let total = 0, counts = {};
+            sessions.forEach(s => {
+                total += s.duration;
+                const sub = subjects.find(sb => sb.id === s.subjectId);
+                if(sub) {
+                    if(!counts[sub.name]) counts[sub.name] = {val:0, color: sub.color};
+                    counts[sub.name].val += s.duration;
+                }
+            });
+
+            document.getElementById('total-hours').innerText = (total/60).toFixed(1);
+            document.getElementById('total-sessions').innerText = sessions.length;
+            
+            let top = '-', max = 0;
+            for(let k in counts) if(counts[k].val > max) { max = counts[k].val; top = k; }
+            document.getElementById('top-subject').innerText = top;
+
+            const chart = document.getElementById('chart-pie');
+            const legend = document.getElementById('chart-legend');
+            
+            if(total === 0) {
+                chart.style.background = '#f3f4f6';
+                legend.innerHTML = '<span class="text-xs text-stone-400 italic">Sem dados. Adicione matérias e estudos!</span>';
+                return;
+            }
+
+            let grad = [], pos = 0;
+            legend.innerHTML = '';
+            for(let k in counts) {
+                const p = (counts[k].val / total) * 100;
+                grad.push(`${counts[k].color} ${pos}% ${pos + p}%`);
+                pos += p;
+                legend.innerHTML += `
+                    <div class="flex items-center gap-2 bg-white border border-stone-100 px-3 py-1 rounded-full shadow-sm">
+                        <div class="w-3 h-3 rounded-full shadow-sm" style="background:${counts[k].color}"></div>
+                        <span class="text-xs font-bold text-stone-600">${Math.round(p)}%</span>
+                    </div>`;
+            }
+            chart.style.background = `conic-gradient(${grad.join(', ')})`;
+        }
+
+        // --- 8. AÇÕES ---
+        async function addSubject() {
+            const nameIn = document.getElementById('sub-name');
+            if(!nameIn.value) return alert("Digite o nome!");
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('subjects').add({name: nameIn.value, color: selectedColor, createdAt: Date.now()});
+                nameIn.value = '';
+                alert("Matéria criada!");
+            } catch(e) { alert("Erro: " + e.message); }
+        }
+
+        async function saveSession() {
+            const date = document.getElementById('log-date').value;
+            const dur = document.getElementById('log-duration').value;
+            if(!selectedSubjectId) return alert("Escolha a matéria!");
+            if(!dur) return alert("Digite o tempo!");
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('sessions').add({subjectId: selectedSubjectId, date: date, duration: parseInt(dur), createdAt: Date.now()});
+                switchView('dashboard');
+            } catch(e) { alert("Erro: " + e.message); }
+        }
+
+        async function deleteSubject(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('subjects').doc(id).delete(); }
+        async function deleteSession(id) { if(confirm('Apagar?')) await db.collection('users').doc(currentUser.uid).collection('sessions').doc(id).delete(); }
+
+    </script>
 </body>
-</html>
+                              </html>
