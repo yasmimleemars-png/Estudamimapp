@@ -486,7 +486,14 @@
 
         function prepareLog() {
             switchView('log');
-            document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+            
+            // CORREÇÃO DE FUSO HORÁRIO 1: Usar hora local para o input de data
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            document.getElementById('log-date').value = `${year}-${month}-${day}`;
+
             document.getElementById('log-duration').value = '';
             // Resetar timer se estiver rodando
             if(isTimerRunning) resetTimer();
@@ -553,7 +560,13 @@
         function renderDashboard() {
             let filteredSessions = sessions;
             const now = new Date();
-            const todayStr = now.toISOString().split('T')[0];
+            
+            // CORREÇÃO DE FUSO HORÁRIO 2: Construir a string de hoje baseada na hora local
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+            
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
 
@@ -662,4 +675,4 @@
 
     </script>
 </body>
-</html>
+                            </html>
